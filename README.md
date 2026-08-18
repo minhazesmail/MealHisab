@@ -2,21 +2,18 @@
 
 Bangladesh-first meal accounting for shared flats, messes and small households.
 
-## Current architecture
+## Architecture
 
 - Next.js 16 App Router + React 19 + TypeScript
 - Supabase Auth, PostgreSQL, Storage and Realtime
 - Database-enforced tenancy/RLS and transactional cycle closing
-- Explicit meal overrides with policy-aware implicit meals
+- Policy-aware implicit meals: opt-out counts by default; opt-in requires confirmation
 - Immutable settlement snapshots and per-cycle opening/closing balances
 - English/Bangla-ready UI with BDT formatting
-
-This application lives under `mealhisab-bd/` so the existing EduFlow product in the parent repository remains untouched.
 
 ## Local setup
 
 ```bash
-cd mealhisab-bd
 cp .env.example .env.local
 npm install
 npm run typecheck
@@ -24,18 +21,18 @@ npm run test
 npm run dev
 ```
 
-Set these environment variables:
+Environment variables:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `NEXT_PUBLIC_APP_URL`
 
-Do not put a Supabase service-role key in browser or public environment variables.
+Never expose a Supabase service-role/secret key in browser code or `NEXT_PUBLIC_*` variables.
 
 ## Supabase
 
-Apply `supabase/migrations/00001_initial.sql`, then `00002_security.sql`, then `00003_accounting.sql` in order. New public tables are explicitly granted to the authenticated Data API role and protected by RLS.
+Apply `supabase/migrations/00001_initial.sql`, `00002_security.sql`, `00003_accounting.sql`, and `00004_storage.sql` in order. The production project is `mealhisab-bd` in `ap-south-1`.
 
 ## Production
 
-Point Vercel at this repository with the project root set to the repository root. GitHub Actions runs lint/typecheck/unit tests; Vercel Git integration handles preview and production deployment.
+Create a Vercel project linked to this repository with the project root at the repository root. GitHub Actions runs typecheck, lint and unit tests; Vercel Git integration handles preview and production deployments.
