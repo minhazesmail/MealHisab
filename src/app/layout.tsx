@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { LanguageProvider } from '@/components/language-provider'
 
 export const metadata: Metadata = {
   title: { default: 'MealHisab BD', template: '%s | MealHisab BD' },
@@ -8,5 +9,11 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" suppressHydrationWarning><body>{children}</body></html>
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <LanguageProvider>{children}</LanguageProvider>
+      </body>
+    </html>
+  )
 }
