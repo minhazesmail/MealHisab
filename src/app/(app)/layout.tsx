@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { LogOut, Utensils } from 'lucide-react'
 
-const nav = [['Dashboard','/dashboard'],['Meals','/meals'],['Expenses','/expenses'],['Contributions','/contributions'],['Reports','/reports'],['Settings','/settings']]
+const nav = [['Dashboard','/dashboard'],['Meals','/meals'],['Expenses','/expenses'],['Contributions','/contributions'],['Settlements','/settlements'],['Reports','/reports'],['Settings','/settings']]
 
 export default async function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const supabase = await createClient()
