@@ -4,14 +4,14 @@ import { calculateMealRate, effectiveMealCount, type MealOverride } from '@/doma
 export type DashboardMember = { id: string; name: string; role: string; meals: number; mealCost: number; contribution: number; openingBalance: number; balance: number }
 
 export function buildDashboardMembers(params: {
-  flat: { meal_policy: 'opt_in'|'opt_out' }
+  flat: { meal_policy: 'opt_in' | 'opt_out' }
   cycle: { start_date: string; end_date: string }
   members: { user_id: string; opening_balance: number; profiles: { full_name: string } | null; active_from: string; active_to: string | null }[]
-  logs: { user_id: string; date: string; meal_type: 'lunch'|'dinner'|'extra'; count: number }[]
+  logs: { user_id: string; date: string; meal_type: 'lunch' | 'dinner' | 'extra'; count: number }[]
   contributions: { user_id: string; amount: number }[]
   foodCost: number
 }): DashboardMember[] {
-  const overrides = new Map<string, MealOverride>(params.logs.map((l) => [`${l.user_id}:${l.date}:${l.meal_type}`, { userId: l.user_id, date: l.date, mealType: l.meal_type, count: l.count }]))
+  const overrides = new Map(params.logs.map((l) => [`${l.user_id}:${l.date}:${l.meal_type}`, { userId: l.user_id, date: l.date, mealType: l.meal_type, count: l.count } as MealOverride]))
   const rows = params.members.map((member) => {
     let meals = 0
     for (const day of eachDayOfInterval({ start: parseISO(params.cycle.start_date), end: parseISO(params.cycle.end_date) })) {
@@ -26,5 +26,5 @@ export function buildDashboardMembers(params: {
   })
   const totalMeals = rows.reduce((sum, r) => sum + r.meals, 0)
   const rate = calculateMealRate(params.foodCost, totalMeals)
-  return rows.map((r) => ({ ...r, mealCost: r.meals * rate, balance: r.openingBalance + r.contribution - r.meals * rate }))
+  return rows.map((r) => ({ ...r, mealCost: Number((r.meals * rate).toFixed(2)), balance: Number((r.openingBalance + r.contribution - r.meals * rate).toFixed(2)) }))
 }
