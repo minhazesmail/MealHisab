@@ -10,7 +10,6 @@ type Props = {
   flatId: string
   cycleId: string
   userId: string
-  /** Pre-assigned cycle date (server computed Dhaka today, clamped to cycle). */
   date: string
   policy: 'opt_in' | 'opt_out'
   initial: Record<string, number>
@@ -52,7 +51,7 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
   return (
     <div className="space-y-4">
       <p className="text-xs text-slate-500">
-        {t('meals.autoDate')}: <span className="font-semibold text-slate-700">{effectiveDate}</span>
+        Date: <span className="font-semibold text-slate-700">{effectiveDate}</span>
       </p>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="card">
