@@ -3,18 +3,20 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LanguageProvider, LanguageToggle, useI18n } from '@/components/language-provider'
+import type { DictKey } from '@/lib/i18n'
 
 export { LanguageProvider, LanguageToggle }
 
-const navKeys = [
+const navKeys: [DictKey, string][] = [
   ['nav.dashboard', '/dashboard'],
   ['nav.meals', '/meals'],
+  ['nav.calendar', '/calendar'],
   ['nav.expenses', '/expenses'],
   ['nav.contributions', '/contributions'],
   ['nav.settlements', '/settlements'],
   ['nav.reports', '/reports'],
   ['nav.settings', '/settings'],
-] as const
+]
 
 export function AppNav() {
   const { t } = useI18n()
