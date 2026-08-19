@@ -137,7 +137,7 @@ export default function Home() {
         <section className="grid gap-8 rounded-[34px] bg-slate-950 p-6 text-white shadow-2xl shadow-slate-950/15 sm:p-8 lg:grid-cols-[1.05fr_.95fr] lg:p-10">
           <div className="flex flex-col justify-center">
             <div className="mb-5 flex items-center gap-3"><LogoMark size={42} /><div className="font-bold">MealHisab BD</div></div>
-            <h2 className="max-w-xl text-3xl font-black tracking-tight sm:text-4xl">Make the monthly হিসাব feel simple again.</h2>
+            <h2 className="max-w-xl text-3xl font-black tracking-tight sm:text-4xl">Make the monthly numbers feel simple again.</h2>
             <p className="mt-3 max-w-xl text-sm leading-7 text-slate-300 sm:text-base">Create a flat, invite your housemates and let the numbers take care of themselves.</p>
           </div>
           <div className="lg:pl-8"><MiniAuthCard /></div>
