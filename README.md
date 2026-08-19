@@ -32,17 +32,18 @@ We optimise for trust, clarity, and the way Bangladeshi messes actually work —
 
 | Area | What you get |
 |------|----------------|
-| **Meals** | Lunch, dinner, extra/guest; opt-out (default) or opt-in policy |
+| **Meals** | Lunch, dinner, extra/guest; opt-out (default) or opt-in policy; **date auto-assigned** (Asia/Dhaka, clamped to open cycle) |
+| **Calendar** | Month view of cycle days, your meals, and mess-closed holidays |
 | **Expenses** | Grocery, cook salary, gas, other — all in settlement cost |
-| **Contributions** | Record deposits; balances update live |
+| **Contributions** | Record deposits; **date auto-assigned** the same way as meals; balances update live |
 | **Settlement** | Immutable cycle snapshots, opening/closing balances, residual rounding reconciliation |
 | **Invites** | Shareable link (`/join/CODE`) + short code; copy or native share (WhatsApp-friendly) |
 | **Holidays** | Mark mess-closed days so opt-out meals don’t create phantom charges |
 | **Roles** | Manager/admin RBAC for expenses, cycle close, closed days |
-| **Language** | English + বাংলা UI; BDT formatting with optional Bangla digits |
+| **Language** | English + বাংলা UI (landing → login → app); BDT formatting with optional Bangla digits |
 | **Privacy** | Flat-level tenancy, Supabase Auth (phone/email OTP), RLS |
 
-Interactive **demo** (sample data only, no account): `/demo`
+Interactive **demo** (sample data only, no account): `/demo` — includes calendar, auto-dates, and language toggle.
 
 ---
 
@@ -51,6 +52,7 @@ Interactive **demo** (sample data only, no account): `/demo`
 ### Near term
 - [x] Shareable invite links + copy/share from settings & post-create
 - [x] Full EN / বাংলা UI toggle with Bangla number formatting
+- [x] Meal calendar + automatic date assignment for meals & contributions
 - [x] Product-focused README and vision
 - [ ] Deeper Bangla coverage on every form/label (ongoing)
 - [ ] PDF / Excel export of cycle settlement for the monthly meeting
@@ -80,6 +82,7 @@ Feedback and issues welcome on GitHub.
 - Cents-precision accounting with cycle-level rounding reconciliation
 - Departure proration, mess-closed/holiday days, manager RBAC
 - English/Bangla-ready UI with BDT formatting
+- Dates for meals/contributions use **Asia/Dhaka** and clamp into the open cycle
 
 ### Local setup
 
@@ -98,9 +101,20 @@ Environment variables:
 - `NEXT_PUBLIC_APP_URL` — used for invite links (e.g. `https://meal-hisab-sigma.vercel.app`)
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only; never expose as `NEXT_PUBLIC_*`
 
-### Supabase
+### Supabase migrations
 
 Apply every file in `supabase/migrations/` in filename order. Production project: `mealhisab-bd` (`ap-south-1`).
+
+**Required for contributions auto-date:** run `20260819110000_contribution_date.sql` if not already applied.
+
+Verify with:
+
+```bash
+# In Supabase SQL Editor, paste:
+# supabase/scripts/verify_contribution_date.sql
+```
+
+Expect `column_exists = true`, `is_not_null = true`, `rows_missing_date = 0`, `index_exists >= 1`.
 
 Session refresh uses Next.js 16’s `src/proxy.ts` (not legacy `middleware.ts`).
 
