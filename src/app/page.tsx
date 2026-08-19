@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, Check, CircleCheck, WalletCards, Utensils, Users, Sparkles } from 'lucide-react'
+import { ArrowRight, Check, CircleCheck, WalletCards, Utensils, Users, Sparkles, PlayCircle } from 'lucide-react'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -31,15 +31,18 @@ function MiniAuthCard() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Get started</p>
           <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">Log in / Sign up</h2>
-          <p className="mt-1 text-sm text-slate-500">One Bangladesh phone number. Same simple flow for everyone.</p>
+          <p className="mt-1 text-sm text-slate-500">Choose phone or email verification. New users are created after verification.</p>
         </div>
         <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-700"><Utensils size={18} /></div>
       </div>
       <div className="space-y-3">
         <Link href="/login" className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-emerald-700">
-          Continue with phone <ArrowRight size={16} />
+          Continue with phone or email <ArrowRight size={16} />
         </Link>
-        <p className="text-center text-xs leading-5 text-slate-400">New here? Your MealHisab account is created automatically when you verify your number.</p>
+        <Link href="/demo" className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100">
+          <PlayCircle size={16} /> Try the interactive demo
+        </Link>
+        <p className="text-center text-xs leading-5 text-slate-400">Demo mode uses sample data only. It never touches your real account or database.</p>
       </div>
       <div className="mt-6 grid grid-cols-3 gap-3 text-center text-xs text-slate-500">
         {['Secure OTP', 'BDT-ready', 'Private flats'].map((item) => <div key={item} className="rounded-2xl bg-slate-50 px-2 py-3 font-medium">{item}</div>)}
@@ -91,6 +94,7 @@ export default function Home() {
             <div><div className="text-sm font-black tracking-tight text-slate-950 sm:text-base">MealHisab</div><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">BD</div></div>
           </Link>
           <div className="flex items-center gap-2">
+            <Link href="/demo" className="hidden items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 sm:inline-flex"><PlayCircle size={15} /> Try demo</Link>
             <Link href="/login" className="hidden rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-slate-950 sm:inline-flex">Log in</Link>
             <Link href="/login" className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">Get started</Link>
           </div>
@@ -103,10 +107,10 @@ export default function Home() {
             <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">MealHisab replaces notebooks, spreadsheets and WhatsApp math with one calm ledger for meals, groceries, contributions and end-of-month balances.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-6 py-3.5 text-sm font-semibold text-white shadow-xl shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-emerald-700">Start your flat <ArrowRight size={17} /></Link>
-              <Link href="/login" className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/85 px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-white">Already have an account</Link>
+              <Link href="/demo" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-3.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"><PlayCircle size={17} /> Explore interactive demo</Link>
             </div>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs font-medium text-slate-500">
-              {['Bangladesh phone OTP', 'BDT by default', 'Flat-level privacy'].map((text) => <span key={text} className="inline-flex items-center gap-2"><CircleCheck size={14} className="text-emerald-600" />{text}</span>)}
+              {['Phone or email OTP', 'BDT by default', 'Flat-level privacy'].map((text) => <span key={text} className="inline-flex items-center gap-2"><CircleCheck size={14} className="text-emerald-600" />{text}</span>)}
             </div>
           </div>
           <div className="relative">
@@ -123,7 +127,19 @@ export default function Home() {
           ].map(([Icon, title, body]) => <div key={title as string} className="rounded-3xl bg-white/75 p-5 shadow-sm"><div className="mb-4 inline-flex rounded-2xl bg-slate-950 p-3 text-white"><Icon size={17} /></div><h3 className="text-sm font-bold text-slate-950">{title as string}</h3><p className="mt-2 text-sm leading-6 text-slate-500">{body as string}</p></div>)}
         </section>
 
-        <section className="grid gap-10 py-16 lg:grid-cols-[.85fr_1.15fr] lg:items-center lg:py-20">
+        <section className="grid gap-10 border-b border-slate-200/80 py-16 lg:grid-cols-[.85fr_1.15fr] lg:items-center lg:py-20">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Try before you sign up</p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">See the real workflow with safe sample data.</h2>
+            <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">Explore the dashboard, change meals, add expenses, review contributions and preview a settlement without creating an account.</p>
+            <Link href="/demo" className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-700"><PlayCircle size={16}/> Launch demo</Link>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[['Meal tracking', 'Adjust sample meals and watch balances recalculate.'], ['Shared expenses', 'Add a demo grocery or household expense.'], ['Contributions', 'See deposits against each member’s meal share.'], ['Settlement', 'Preview what a closed cycle would look like.']].map(([title, body]) => <div key={title} className="rounded-3xl border border-slate-200 bg-white p-5"><div className="flex items-start gap-3"><div className="mt-0.5 rounded-full bg-emerald-50 p-2 text-emerald-600"><Check size={15} /></div><div><h3 className="text-sm font-bold text-slate-900">{title}</h3><p className="mt-1 text-sm leading-6 text-slate-500">{body}</p></div></div></div>)}
+          </div>
+        </section>
+
+        <section className="grid gap-10 border-b border-slate-200/80 py-16 lg:grid-cols-[.85fr_1.15fr] lg:items-center lg:py-20">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Why MealHisab</p>
             <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Designed for the way a Bangladeshi mess actually works.</h2>
@@ -143,7 +159,7 @@ export default function Home() {
           <div className="lg:pl-8"><MiniAuthCard /></div>
         </section>
 
-        <footer className="flex flex-col gap-3 py-8 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between"><p>© {new Date().getFullYear()} MealHisab BD. Simple shared-house accounting.</p><div className="flex gap-4"><Link href="/login" className="hover:text-slate-700">Log in</Link><Link href="/onboarding" className="hover:text-slate-700">Create a flat</Link></div></footer>
+        <footer className="flex flex-col gap-3 py-8 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between"><p>© {new Date().getFullYear()} MealHisab BD. Simple shared-house accounting.</p><div className="flex gap-4"><Link href="/demo" className="hover:text-slate-700">Try demo</Link><Link href="/login" className="hover:text-slate-700">Log in</Link><Link href="/onboarding" className="hover:text-slate-700">Create a flat</Link></div></footer>
       </div>
     </main>
   )
