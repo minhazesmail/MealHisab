@@ -64,8 +64,8 @@ export function LeaveFlatButton({ flatId }: { flatId: string }) {
 export function MessClosedForm({ cycleId }: { cycleId: string }) {
   const router = useRouter(); const [pending, start] = useTransition(); const [error, setError] = useState('')
   return <form className="space-y-3" onSubmit={(event) => {
-    event.preventDefault(); setError(''); const form = new FormData(event.currentTarget)
-    start(async () => { try { await setCycleClosedDay({ cycleId, date: String(form.get('date')), reason: String(form.get('reason') || 'Mess closed') }); event.currentTarget.reset(); router.refresh() } catch (err) { setError(err instanceof Error ? err.message : 'Could not mark the day closed') } })
+    event.preventDefault(); setError(''); const formElement = event.currentTarget; const form = new FormData(formElement)
+    start(async () => { try { await setCycleClosedDay({ cycleId, date: String(form.get('date')), reason: String(form.get('reason') || 'Mess closed') }); formElement.reset(); router.refresh() } catch (err) { setError(err instanceof Error ? err.message : 'Could not mark the day closed') } })
   }}>
     <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]"><input name="date" type="date" className="input" required /><input name="reason" className="input" maxLength={200} placeholder="Reason, e.g. Eid holiday" /><button className="btn-primary" disabled={pending}>{pending ? 'Saving…' : 'Mark closed'}</button></div>
     <ActionError message={error} />
@@ -80,8 +80,8 @@ export function RemoveClosedDayButton({ cycleId, date }: { cycleId: string; date
 export function SettlementPaymentForm({ settlementId, maxAmount, direction }: { settlementId: string; maxAmount: number; direction: 'payout' | 'collection' }) {
   const router = useRouter(); const [pending, start] = useTransition(); const [error, setError] = useState('')
   return <form className="mt-3 space-y-2" onSubmit={(event) => {
-    event.preventDefault(); setError(''); const form = new FormData(event.currentTarget); const amount = Number(form.get('amount')); const note = String(form.get('note') || '')
-    start(async () => { try { await recordSettlementPayment({ settlementId, amount, note }); event.currentTarget.reset(); router.refresh() } catch (err) { setError(err instanceof Error ? err.message : 'Could not record payment') } })
+    event.preventDefault(); setError(''); const formElement = event.currentTarget; const form = new FormData(formElement); const amount = Number(form.get('amount')); const note = String(form.get('note') || '')
+    start(async () => { try { await recordSettlementPayment({ settlementId, amount, note }); formElement.reset(); router.refresh() } catch (err) { setError(err instanceof Error ? err.message : 'Could not record payment') } })
   }}>
     <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]"><input name="amount" type="number" min="0.01" max={maxAmount.toFixed(2)} step="0.01" className="input" placeholder={`Amount to ${direction === 'payout' ? 'pay out' : 'collect'}`} required /><input name="note" className="input" maxLength={500} placeholder="Payment note (optional)" /><button className="btn-primary" disabled={pending}>{pending ? 'Saving…' : direction === 'payout' ? 'Record payout' : 'Record collection'}</button></div>
     <ActionError message={error} />
