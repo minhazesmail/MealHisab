@@ -2,6 +2,21 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SettlementPaymentForm } from '@/components/forms'
 
+type PaymentDirection = 'payout' | 'collection'
+type MemberRow = {
+  user_id: string
+  profiles: { full_name: string } | { full_name: string }[] | null
+}
+type PaymentRow = {
+  settlement_id: string
+  direction: PaymentDirection
+  amount: number
+  paid_at: string
+  note: string | null
+}
+
+type PaymentTotals = { payout: number; collection: number }
+
 export default async function SettlementsPage() {
   const s = await createClient()
   const { data: { user } } = await s.auth.getUser()
@@ -19,17 +34,24 @@ export default async function SettlementsPage() {
   const userIds = [...new Set(rows.map((row) => row.user_id))]
   const { data: members } = membership?.flat_id
     ? await s.from('flat_members').select('user_id,profiles(full_name)').eq('flat_id', membership.flat_id).in('user_id', userIds)
-    : { data: [] as { user_id: string; profiles: { full_name: string } | null }[] }
-  const nameMap = new Map((members ?? []).map((member) => [member.user_id, member.profiles?.full_name ?? 'Member']))
+    : { data: [] as MemberRow[] }
+
+  const memberRows = (members ?? []) as unknown as MemberRow[]
+  const nameMap = new Map(memberRows.map((member) => {
+    const profile = Array.isArray(member.profiles) ? member.profiles[0] : member.profiles
+    return [member.user_id, profile?.full_name ?? 'Member'] as const
+  }))
 
   const settlementIds = rows.map((row) => row.id)
   const { data: payments } = settlementIds.length > 0
     ? await s.from('settlement_payments').select('settlement_id,direction,amount,paid_at,note').in('settlement_id', settlementIds).order('paid_at', { ascending: false })
-    : { data: [] as { settlement_id: string; direction: 'payout' | 'collection'; amount: number; paid_at: string; note: string | null }[] }
-  const paymentMap = new Map<string, { payout: number; collection: number }>()
-  for (const payment of payments ?? []) {
+    : { data: [] as PaymentRow[] }
+
+  const paymentRows = (payments ?? []) as unknown as PaymentRow[]
+  const paymentMap = new Map<string, PaymentTotals>()
+  for (const payment of paymentRows) {
     const current = paymentMap.get(payment.settlement_id) ?? { payout: 0, collection: 0 }
-    current[payment.direction] += Number(payment.amount)
+    current[payment.direction] = Number(current[payment.direction]) + Number(payment.amount)
     paymentMap.set(payment.settlement_id, current)
   }
 
@@ -41,7 +63,7 @@ export default async function SettlementsPage() {
       {rows.map((row) => {
         const balance = Number(row.balance)
         const paymentTotals = paymentMap.get(row.id) ?? { payout: 0, collection: 0 }
-        const direction = balance > 0 ? 'payout' : balance < 0 ? 'collection' : null
+        const direction: PaymentDirection | null = balance > 0 ? 'payout' : balance < 0 ? 'collection' : null
         const paid = direction ? paymentTotals[direction] : 0
         const outstanding = direction ? Math.max(0, Math.round((Math.abs(balance) - paid) * 100) / 100) : 0
         const cycle = Array.isArray(row.cycles) ? row.cycles[0] : row.cycles
