@@ -24,18 +24,23 @@ export function ExpenseForm({ flatId, cycleId }: { flatId: string; cycleId: stri
   </form>
 }
 
-export function ContributionForm({ flatId, cycleId, userId }: { flatId: string; cycleId: string; userId: string }) {
+type ContributionMember = { userId: string; name: string }
+
+export function ContributionForm({ flatId, cycleId, userId, members = [] }: { flatId: string; cycleId: string; userId: string; members?: ContributionMember[] }) {
   const router = useRouter(); const [pending, start] = useTransition(); const [error, setError] = useState('')
+  const canChooseMember = members.length > 0
   return <form className="card space-y-3" onSubmit={(event) => {
     event.preventDefault(); setError(''); const formElement = event.currentTarget; const form = new FormData(formElement)
-    const data = { flatId, cycleId, userId, amount: Number(form.get('amount')), note: String(form.get('note') || '') }
-    start(async () => { try { await saveContribution(data); formElement.reset(); router.refresh() } catch (err) { setError(err instanceof Error ? err.message : 'Could not save contribution') } })
+    const targetUserId = String(form.get('userId') || userId)
+    const data = { flatId, cycleId, userId: targetUserId, amount: Number(form.get('amount')), note: String(form.get('note') || '') }
+    start(async () => { try { await saveContribution(data); formElement.reset(); if (canChooseMember) formElement.elements.namedItem('userId') && ((formElement.elements.namedItem('userId') as HTMLSelectElement).value = userId); router.refresh() } catch (err) { setError(err instanceof Error ? err.message : 'Could not save contribution') } })
   }}>
-    <h2 className="font-semibold">Add contribution</h2>
+    <div><h2 className="font-semibold">Add contribution</h2><p className="mt-1 text-xs text-slate-500">Record a deposit for yourself, or choose another member when you manage the flat.</p></div>
+    {canChooseMember && <label className="block text-sm font-medium text-slate-700">Member<select name="userId" className="input mt-1.5" defaultValue={userId}>{members.map((member) => <option key={member.userId} value={member.userId}>{member.name}{member.userId === userId ? ' (You)' : ''}</option>)}</select></label>}
     <input name="amount" type="number" min="0.01" step="0.01" className="input" placeholder="Amount in BDT" required />
     <input name="note" className="input" placeholder="Note (optional)" maxLength={500} />
     <ActionError message={error} />
-    <button type="submit" className="btn-primary w-full" disabled={pending}>{pending ? 'Saving…' : 'Save contribution'}</button>
+    <button type="submit" className="btn-primary w-full" disabled={pending}>{pending ? 'Saving…' : 'Add contribution'}</button>
   </form>
 }
 
