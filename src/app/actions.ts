@@ -98,7 +98,39 @@ export async function closeCycle(cycleId: string) {
   if (cycle.status !== 'open') throw new Error('This cycle is already closed')
   const { error } = await supabase.rpc('close_cycle', { p_cycle_id: id })
   if (error) throw new Error(error.message)
-  revalidatePath('/dashboard'); revalidatePath('/reports'); revalidatePath('/meals'); revalidatePath('/expenses'); revalidatePath('/contributions'); revalidatePath('/settings')
+  revalidatePath('/dashboard'); revalidatePath('/reports'); revalidatePath('/meals'); revalidatePath('/expenses'); revalidatePath('/contributions'); revalidatePath('/settings'); revalidatePath('/settlements')
+}
+
+export async function leaveFlat(flatId: string) {
+  const id = z.string().uuid().parse(flatId)
+  const { supabase } = await currentUser()
+  const { error } = await supabase.rpc('leave_flat', { p_flat_id: id })
+  if (error) throw new Error(error.message)
+  revalidatePath('/settings'); revalidatePath('/dashboard'); revalidatePath('/settlements')
+}
+
+export async function setCycleClosedDay(input: { cycleId: string; date: string; reason?: string }) {
+  const data = z.object({ cycleId: z.string().uuid(), date: dateSchema, reason: z.string().trim().max(200).optional() }).parse(input)
+  const { supabase } = await currentUser()
+  const { error } = await supabase.rpc('set_cycle_closed_day', { p_cycle_id: data.cycleId, p_date: data.date, p_reason: data.reason || 'Mess closed' })
+  if (error) throw new Error(error.message)
+  revalidatePath('/settings'); revalidatePath('/meals'); revalidatePath('/dashboard')
+}
+
+export async function removeCycleClosedDay(input: { cycleId: string; date: string }) {
+  const data = z.object({ cycleId: z.string().uuid(), date: dateSchema }).parse(input)
+  const { supabase } = await currentUser()
+  const { error } = await supabase.rpc('remove_cycle_closed_day', { p_cycle_id: data.cycleId, p_date: data.date })
+  if (error) throw new Error(error.message)
+  revalidatePath('/settings'); revalidatePath('/meals'); revalidatePath('/dashboard')
+}
+
+export async function recordSettlementPayment(input: { settlementId: string; amount: number; note?: string }) {
+  const data = z.object({ settlementId: z.string().uuid(), amount: z.number().positive().max(10000000), note: z.string().trim().max(500).optional() }).parse(input)
+  const { supabase } = await currentUser()
+  const { error } = await supabase.rpc('record_settlement_payment', { p_settlement_id: data.settlementId, p_amount: Math.round(data.amount * 100) / 100, p_note: data.note || null })
+  if (error) throw new Error(error.message)
+  revalidatePath('/settlements'); revalidatePath('/reports'); revalidatePath('/dashboard')
 }
 
 export async function markNotificationRead(id: string) {
