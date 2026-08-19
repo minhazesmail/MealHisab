@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -20,6 +20,19 @@ function LogoMark() {
 
 type Method = 'phone' | 'email'
 
+function friendlyAuthError(message: string, method: Method) {
+  const lower = message.toLowerCase()
+  if (lower.includes('rate limit') || lower.includes('email rate')) {
+    return method === 'email'
+      ? 'Email verification is temporarily rate-limited by the current Supabase email service. Please use phone verification now, or retry after the email quota resets.'
+      : 'Too many verification requests were sent recently. Please wait a little before trying again.'
+  }
+  if (lower.includes('email address not authorized')) {
+    return 'This Supabase project is still using its restricted default email service. A custom SMTP provider is required to send verification emails to general users.'
+  }
+  return message
+}
+
 export default function LoginPage() {
   const [method, setMethod] = useState<Method>('phone')
   const [phone, setPhone] = useState('')
@@ -29,12 +42,22 @@ export default function LoginPage() {
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [cooldown, setCooldown] = useState(0)
   const router = useRouter()
   const supabase = createClient()
 
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const timer = window.setInterval(() => setCooldown((value) => Math.max(0, value - 1)), 1000)
+    return () => window.clearInterval(timer)
+  }, [cooldown])
+
   async function sendCode() {
+    if (cooldown > 0) return
     setLoading(true)
     setError('')
+
+    let authError: { message: string } | null = null
 
     if (method === 'phone') {
       const normalized = normalizeBdPhone(phone)
@@ -48,8 +71,7 @@ export default function LoginPage() {
         phone: normalized,
         options: { shouldCreateUser: true, data: { full_name: name.trim() || 'MealHisab User' } },
       })
-      if (e) setError(e.message)
-      else setSent(true)
+      authError = e
     } else {
       const normalized = email.trim().toLowerCase()
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
@@ -62,10 +84,17 @@ export default function LoginPage() {
         email: normalized,
         options: { shouldCreateUser: true, data: { full_name: name.trim() || 'MealHisab User' } },
       })
-      if (e) setError(e.message)
-      else setSent(true)
+      authError = e
     }
 
+    if (authError) {
+      setError(friendlyAuthError(authError.message, method))
+      setLoading(false)
+      return
+    }
+
+    setSent(true)
+    setCooldown(60)
     setLoading(false)
   }
 
@@ -77,7 +106,7 @@ export default function LoginPage() {
       ? await supabase.auth.verifyOtp({ phone: normalizeBdPhone(phone), token: code.trim(), type: 'sms' })
       : await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: code.trim(), type: 'email' })
 
-    if (result.error) setError(result.error.message)
+    if (result.error) setError(friendlyAuthError(result.error.message, method))
     else router.push('/dashboard')
     setLoading(false)
   }
@@ -87,6 +116,7 @@ export default function LoginPage() {
     setSent(false)
     setCode('')
     setError('')
+    setCooldown(0)
   }
 
   const destination = method === 'phone' ? normalizeBdPhone(phone) : email.trim().toLowerCase()
@@ -107,16 +137,17 @@ export default function LoginPage() {
           <label className="block text-sm font-semibold text-slate-700">Your name<input className="input mt-1.5" value={name} onChange={e=>setName(e.target.value)} placeholder="Rahim Ahmed" autoComplete="name" /></label>
           {method === 'phone' ? <label className="block text-sm font-semibold text-slate-700">Phone number<input className="input mt-1.5" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+8801712345678" inputMode="tel" autoComplete="tel" /></label>
             : <label className="block text-sm font-semibold text-slate-700">Email address<input className="input mt-1.5" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" type="email" inputMode="email" autoComplete="email" /></label>}
-          <button className="btn-primary w-full" onClick={sendCode} disabled={loading}>{loading ? 'Sending verification…' : `Continue with ${method}`}</button>
+          <button className="btn-primary w-full" onClick={sendCode} disabled={loading || cooldown > 0}>{loading ? 'Sending verification…' : cooldown > 0 ? `Try again in ${cooldown}s` : `Continue with ${method}`}</button>
         </div>
         : <div className="space-y-4">
           <p className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800">We sent a verification code to <strong>{destination}</strong>.</p>
           <label className="block text-sm font-semibold text-slate-700">Verification code<input className="input mt-1.5 text-center text-lg tracking-[0.4em]" value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,''))} maxLength={6} inputMode="numeric" autoComplete="one-time-code" autoFocus /></label>
           <button className="btn-primary w-full" onClick={verify} disabled={loading || code.length < 4}>{loading ? 'Verifying…' : 'Verify & continue'}</button>
           <div className="grid grid-cols-2 gap-2"><button className="btn-secondary w-full" onClick={()=>setSent(false)}>Change contact</button><button className="btn-secondary w-full" onClick={()=>changeMethod(method === 'phone' ? 'email' : 'phone')}>Use {method === 'phone' ? 'email' : 'phone'}</button></div>
+          <button type="button" className="w-full text-center text-sm font-semibold text-slate-500 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50" onClick={sendCode} disabled={loading || cooldown > 0}>{cooldown > 0 ? `Resend available in ${cooldown}s` : 'Resend verification code'}</button>
         </div>}
 
-        {error && <p className="mt-4 rounded-2xl bg-rose-50 p-3 text-sm text-rose-700" role="alert">{error}</p>}
+        {error && <p className="mt-4 rounded-2xl bg-rose-50 p-3 text-sm leading-6 text-rose-700" role="alert">{error}</p>}
         <div className="mt-7 flex items-center gap-2 border-t border-slate-100 pt-5 text-xs text-slate-400"><ShieldCheck size={14} className="text-emerald-600" />Your flat data is protected by account-based access controls.</div>
       </div>
     </div>
