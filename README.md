@@ -35,7 +35,7 @@ Never expose a Supabase service-role/secret key in browser code or `NEXT_PUBLIC_
 
 ## Supabase
 
-Apply `supabase/migrations/00001_initial.sql` through `supabase/migrations/00009_rpc_security_cleanup.sql` in order. The production project is `mealhisab-bd` in `ap-south-1`.
+Apply every file in `supabase/migrations/` in filename order (`00001_initial.sql` through the latest dated migration). The production project is `mealhisab-bd` in `ap-south-1`.
 
 The repository uses Next.js 16's `src/proxy.ts` session-refresh convention rather than the legacy `middleware.ts` filename. The proxy refreshes Supabase auth cookies before requests reach Server Components.
 
