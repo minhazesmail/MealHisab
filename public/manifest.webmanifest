@@ -1,11 +1,18 @@
 {
   "name": "MealHisab BD",
   "short_name": "MealHisab",
-  "description": "Meal accounting for Bangladeshi flats and messes",
-  "start_url": "/dashboard",
+  "description": "Modern meal and household accounting for Bangladeshi flats, messes and small households.",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
+  "background_color": "#f7f9f8",
   "theme_color": "#16a34a",
   "lang": "en-BD",
-  "icons": []
+  "icons": [
+    {
+      "src": "/mealhisab-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
