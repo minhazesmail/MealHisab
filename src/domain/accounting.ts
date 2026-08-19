@@ -72,20 +72,32 @@ export function calculateMemberMeals(
   return total
 }
 
-export function calculateMealRate(foodCost: number, totalMeals: number): number {
+export function calculateMealRate(totalCost: number, totalMeals: number): number {
   if (totalMeals <= 0) return 0
-  return foodCost / totalMeals
+  return roundMoney(totalCost / totalMeals)
 }
 
 export function calculateSettlements(
   inputs: MemberSettlementInput[],
-  foodCost: number,
+  totalCost: number,
   totalMeals: number,
 ): MemberSettlement[] {
-  const rate = calculateMealRate(foodCost, totalMeals)
-  return inputs.map((input) => {
-    const mealCost = input.mealCount * rate
-    const closingBalance = input.openingBalance + input.contribution - mealCost
+  if (inputs.length === 0) return []
+
+  const rate = calculateMealRate(totalCost, totalMeals)
+  const preliminary = inputs.map((input) => ({
+    ...input,
+    mealCost: roundMoney(input.mealCount * rate),
+  }))
+
+  // Reconcile rounding drift into the last member so the ledger always balances exactly.
+  const allocated = preliminary.reduce((sum, item) => sum + item.mealCost, 0)
+  const residual = roundMoney(totalCost - allocated)
+  const lastIndex = preliminary.length - 1
+
+  return preliminary.map((input, index) => {
+    const mealCost = index === lastIndex ? roundMoney(input.mealCost + residual) : input.mealCost
+    const closingBalance = roundMoney(input.openingBalance + input.contribution - mealCost)
     return { ...input, mealCost, closingBalance }
   })
 }
