@@ -90,13 +90,17 @@ export function calculateSettlements(
     mealCost: roundMoney(input.mealCount * rate),
   }))
 
-  // Reconcile rounding drift into the last member so the ledger always balances exactly.
+  // Reconcile rounding drift into the member carrying the most meals so the
+  // ledger balances exactly without charging a zero-meal member a residual.
   const allocated = preliminary.reduce((sum, item) => sum + item.mealCost, 0)
   const residual = roundMoney(totalCost - allocated)
-  const lastIndex = preliminary.length - 1
+  const adjustmentIndex = preliminary.reduce((best, item, index, all) => {
+    const bestMeals = all[best]?.mealCount ?? -1
+    return item.mealCount > bestMeals ? index : best
+  }, 0)
 
   return preliminary.map((input, index) => {
-    const mealCost = index === lastIndex ? roundMoney(input.mealCost + residual) : input.mealCost
+    const mealCost = index === adjustmentIndex ? roundMoney(input.mealCost + residual) : input.mealCost
     const closingBalance = roundMoney(input.openingBalance + input.contribution - mealCost)
     return { ...input, mealCost, closingBalance }
   })
