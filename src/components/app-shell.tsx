@@ -37,13 +37,6 @@ const navItems: NavItem[] = [
   ['nav.settings', '/settings', Settings],
 ].map(([key, href, icon]) => ({ key, href, icon }))
 
-const mobilePrimary = [
-  navItems[0],
-  navItems[1],
-  navItems[3],
-  navItems[2],
-]
-
 const mobileMore = [navItems[4], navItems[5], navItems[6], navItems[7]]
 
 function isActive(pathname: string, href: string) {
@@ -84,46 +77,41 @@ function DesktopNav() {
   )
 }
 
+function MobileNavItem({ item }: { item: NavItem }) {
+  const { t } = useI18n()
+  const pathname = usePathname()
+  const active = isActive(pathname, item.href)
+  const Icon = item.icon
+  return (
+    <Link href={item.href} className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[10px] font-semibold ${active ? 'text-brand-green' : 'text-muted'}`}>
+      <Icon size={19} />
+      <span>{t(item.key)}</span>
+    </Link>
+  )
+}
+
 export function MobileNav() {
   const { t } = useI18n()
   const pathname = usePathname()
   const [moreOpen, setMoreOpen] = useState(false)
   const moreActive = mobileMore.some(({ href }) => isActive(pathname, href))
+  const meals = navItems[1]
+  const mealsActive = isActive(pathname, meals.href)
+  const MealsIcon = meals.icon
 
   return (
     <>
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 px-2 pb-[calc(env(safe-area-inset-bottom)+0.4rem)] pt-2 backdrop-blur-xl lg:hidden">
         <div className="mx-auto grid max-w-lg grid-cols-5 gap-1">
-          {mobilePrimary.slice(0, 2).map(({ key, href, icon: Icon }) => {
-            const active = isActive(pathname, href)
-            return (
-              <Link key={href} href={href} className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[10px] font-semibold ${active ? 'text-brand-green' : 'text-muted'}`}>
-                <Icon size={19} />
-                <span>{t(key)}</span>
-              </Link>
-            )
-          })}
-          {(() => {
-            const { key, href, icon: Icon } = navItems[1]
-            const active = isActive(pathname, href)
-            return (
-              <Link href={href} className="relative -mt-6 flex flex-col items-center gap-1 text-[10px] font-bold text-black">
-                <span className={`flex h-14 w-14 items-center justify-center rounded-full border-4 border-canvas bg-brand-green shadow-glow ${active ? 'scale-105' : ''}`}>
-                  <Icon size={24} />
-                </span>
-                <span className="text-brand-green">{t(key)}</span>
-              </Link>
-            )
-          })()}
-          {mobilePrimary.slice(2).map(({ key, href, icon: Icon }) => {
-            const active = isActive(pathname, href)
-            return (
-              <Link key={href} href={href} className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[10px] font-semibold ${active ? 'text-brand-green' : 'text-muted'}`}>
-                <Icon size={19} />
-                <span>{t(key)}</span>
-              </Link>
-            )
-          })}
+          <MobileNavItem item={navItems[0]} />
+          <button type="button" aria-label={t(meals.key)} className="relative -mt-6 flex flex-col items-center gap-1 text-[10px] font-bold text-black" onClick={() => { window.location.href = meals.href }}>
+            <span className={`flex h-14 w-14 items-center justify-center rounded-full border-4 border-canvas bg-brand-green shadow-glow transition ${mealsActive ? 'scale-105' : ''}`}>
+              <MealsIcon size={24} />
+            </span>
+            <span className="text-brand-green">{t(meals.key)}</span>
+          </button>
+          <MobileNavItem item={navItems[3]} />
+          <MobileNavItem item={navItems[2]} />
           <button type="button" onClick={() => setMoreOpen((open) => !open)} className={`flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[10px] font-semibold ${moreActive || moreOpen ? 'text-brand-green' : 'text-muted'}`} aria-expanded={moreOpen}>
             {moreOpen ? <X size={19} /> : <Menu size={19} />}
             <span>More</span>
