@@ -33,8 +33,12 @@ export function extractDbError(error: unknown, context: string): Error {
       ? `You must settle your outstanding balance of ৳${Number(outstandingBalanceMatch[1]).toFixed(2)} before leaving the mess.`
       : code === '23505' && /meal_logs.*flat_id_user_id_date_meal_type_key/i.test(`${rawMessage} ${rawDetails}`)
         ? 'You have already recorded a meal for this time.'
-        : FRIENDLY_DB_MESSAGES[code] ??
-          'Something went wrong while saving your changes. Please try again.'
+        : rawMessage.trim() === 'partial_payment_not_allowed'
+          ? 'Partial payments are disabled for this mess. Please pay the full remaining amount.'
+          : rawMessage.trim() === 'payment_exceeds_outstanding_balance'
+            ? 'That payment is greater than the remaining settlement amount.'
+            : FRIENDLY_DB_MESSAGES[code] ??
+              'Something went wrong while saving your changes. Please try again.'
 
   return new Error(friendlyMessage)
 }
