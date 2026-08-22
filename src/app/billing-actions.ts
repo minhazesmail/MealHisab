@@ -23,26 +23,24 @@ export async function createManagerCheckoutSession() {
     redirect('/onboarding?billing=active')
   }
 
-  const { data: paymentId, error } = await s.rpc('create_manager_payment', {
+  const { data: transactionId, error } = await s.rpc('create_manager_payment', {
     p_plan_code: PLAN_CODE,
     p_amount: MONTHLY_AMOUNT,
   })
-  if (error || !paymentId) throw new Error('Could not create the Manager Plan payment. Please try again.')
+  if (error || !transactionId) throw new Error('Could not create the Manager Plan payment. Please try again.')
 
   const session = await createSslcommerzPayment({
     userId: user.id,
-    paymentId: String(paymentId),
+    paymentId: String(transactionId),
     amount: MONTHLY_AMOUNT,
     customerName: user.user_metadata?.full_name || 'MealHisab Manager',
     customerEmail: user.email || undefined,
     customerPhone: user.phone || undefined,
   })
 
-  redirect(session.redirectGatewayURL)
+  redirect(session.redirectGatewayURL!)
 }
 
 export async function openManagerBillingPortal() {
-  // SSLCOMMERZ is transaction-based rather than Stripe-style subscription billing.
-  // The monthly renewal action intentionally sends the manager through the same ৳99 checkout flow.
   await createManagerCheckoutSession()
 }
