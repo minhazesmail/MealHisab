@@ -1,46 +1,57 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { enforceRateLimit } from '@/lib/rate-limit'
-import { createSslcommerzPayment } from '@/lib/sslcommerz'
 
-const PLAN_CODE = 'manager_99_bdt'
-const MONTHLY_AMOUNT = 99
-
-export async function createManagerCheckoutSession() {
+export async function submitManualManagerPayment(formData: FormData) {
   const s = await createClient()
   const { data: { user } } = await s.auth.getUser()
   if (!user) throw new Error('Not authenticated')
-  await enforceRateLimit('createManagerCheckout', user.id)
+  await enforceRateLimit('submitManualManagerPayment', user.id)
 
-  const { data: existing } = await s.from('manager_subscriptions')
-    .select('status,current_period_end')
-    .eq('user_id', user.id)
-    .maybeSingle()
+  const paymentMethod = String(formData.get('payment_method') ?? '')
+  const senderNumber = String(formData.get('sender_number') ?? '')
+  const transactionId = String(formData.get('transaction_id') ?? '')
+  const note = String(formData.get('note') ?? '')
 
-  if ((existing?.status === 'active' || existing?.status === 'trialing') && existing.current_period_end && new Date(existing.current_period_end) > new Date()) {
-    redirect('/onboarding?billing=active')
+  const { error } = await s.rpc('create_manual_manager_payment', {
+    p_payment_method: paymentMethod,
+    p_sender_number: senderNumber,
+    p_transaction_id: transactionId,
+    p_note: note || null,
+  })
+
+  if (error) {
+    const friendly = error.message.includes('subscription_still_active')
+      ? 'Your Manager Plan is still active.'
+      : error.message.includes('payment_transaction_already_submitted')
+        ? 'That transaction ID has already been submitted.'
+        : 'Could not submit the payment proof. Please check the details and try again.'
+    throw new Error(friendly)
   }
 
-  const { data: transactionId, error } = await s.rpc('create_manager_payment', {
-    p_plan_code: PLAN_CODE,
-    p_amount: MONTHLY_AMOUNT,
-  })
-  if (error || !transactionId) throw new Error('Could not create the Manager Plan payment. Please try again.')
-
-  const session = await createSslcommerzPayment({
-    userId: user.id,
-    paymentId: String(transactionId),
-    amount: MONTHLY_AMOUNT,
-    customerName: user.user_metadata?.full_name || 'MealHisab Manager',
-    customerEmail: user.email || undefined,
-    customerPhone: user.phone || undefined,
-  })
-
-  redirect(session.redirectGatewayURL!)
+  revalidatePath('/settings')
+  redirect('/settings?payment=submitted')
 }
 
-export async function openManagerBillingPortal() {
-  await createManagerCheckoutSession()
+export async function reviewManualManagerPayment(formData: FormData) {
+  const s = await createClient()
+  const { data: { user } } = await s.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const paymentId = String(formData.get('payment_id') ?? '')
+  const decision = String(formData.get('decision') ?? '')
+  const rejectReason = String(formData.get('reject_reason') ?? '')
+
+  const { error } = await s.rpc('review_manager_payment_request', {
+    p_payment_request_id: paymentId,
+    p_decision: decision,
+    p_reject_reason: rejectReason || null,
+  })
+  if (error) {
+    throw new Error(error.message.includes('platform_admin_required') ? 'Platform admin access required.' : 'Could not review this payment request.')
+  }
+  revalidatePath('/admin/payments')
 }
