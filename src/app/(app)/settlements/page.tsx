@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { SettlementPaymentForm } from '@/components/forms'
+import { SettlementPaymentForm } from '@/components/settlement-payment-form'
 
 type PaymentDirection = 'payout' | 'collection'
 type MemberRow = {
@@ -85,7 +85,7 @@ export default async function SettlementsPage() {
             <div className="rounded-2xl bg-surface-2 p-3"><div className="text-xs text-muted">Paid</div><div className="mt-1 font-semibold">৳{paid.toFixed(2)}</div></div>
             <div className={`rounded-2xl p-3 ${remaining > 0 ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}><div className="text-xs text-muted">Remaining</div><div className="mt-1 font-semibold">{remaining > 0 ? `৳${remaining.toFixed(2)}` : 'Complete'}</div></div>
           </div>
-          {canManage && direction && remaining > 0 && <SettlementPaymentForm settlementId={row.id} maxAmount={remaining} direction={direction} />}
+          {canManage && direction && remaining > 0 && <SettlementPaymentForm settlementId={row.id} remaining={remaining} direction={direction} allowPartial={allowPartial} allowOverpayment={allowOverpayment} />}
           {direction && remaining > 0 && <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-100"><strong>৳{remaining.toFixed(2)} remaining.</strong>{' '}This amount will carry forward to the next cycle until the settlement is completed.{!allowPartial && ' Partial payments are disabled, so the full remaining amount is required.'}{allowOverpayment && direction === 'collection' && ' Overpayments are enabled; extra payment becomes credit.'}</div>}
           {isOwn && direction && remaining > 0 && !canManage && <p className="mt-3 text-sm text-muted">Please settle the remaining ৳{remaining.toFixed(2)} with the mess manager.</p>}
         </section>
