@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { setCycleClosedDay, removeCycleClosedDay } from '@/app/actions'
 import { useI18n } from '@/components/language-provider'
 import { toBanglaDigits } from '@/lib/i18n'
@@ -130,6 +130,62 @@ export function MealCalendar({
   const selectedClosed = selected ? closedMap.get(selected) : undefined
   const selectedMeals = selected ? mealByDate.get(selected) : undefined
 
+  function DayDetail({ mobile = false }: { mobile?: boolean }) {
+    return (
+      <div className={`card space-y-4 ${mobile ? 'rounded-b-none border-x-0 border-b-0 pb-[calc(1rem+env(safe-area-inset-bottom))]' : ''}`}>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-semibold">{t('calendar.dayDetail')}</h2>
+          {mobile && (
+            <button
+              type="button"
+              className="btn-secondary rounded-full p-2"
+              onClick={() => setSelected(null)}
+              aria-label={t('common.cancel')}
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+        {!selected && <p className="text-sm text-slate-500">{t('calendar.pickDay')}</p>}
+        {selected && (
+          <>
+            <div>
+              <div className="text-xs text-slate-500">{t('calendar.date')}</div>
+              <div className="font-semibold">{locale === 'bn' ? toBanglaDigits(selected) : selected}</div>
+            </div>
+            {selectedClosed ? (
+              <div className="rounded-2xl bg-amber-50 p-3 text-sm text-amber-900">
+                <div className="font-semibold">{t('calendar.closed')}</div>
+                <div className="mt-1">{selectedClosed}</div>
+                {canManage && (
+                  <button type="button" className="btn-secondary mt-3 text-xs" disabled={pending} onClick={reopen}>
+                    {pending ? t('common.saving') : t('calendar.reopen')}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2 text-sm">
+                <div>{t('meals.lunch')}: <strong>{selectedMeals?.lunch ?? '—'}</strong></div>
+                <div>{t('meals.dinner')}: <strong>{selectedMeals?.dinner ?? '—'}</strong></div>
+                <div>{t('meals.extra')}: <strong>{selectedMeals?.extra ?? 0}</strong></div>
+                {canManage && (
+                  <div className="space-y-2 border-t border-line pt-3">
+                    <p className="text-xs text-slate-500">{t('calendar.markHelp')}</p>
+                    <input className="input" value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t('calendar.reasonPlaceholder')} maxLength={200} />
+                    <button type="button" className="btn-primary w-full" disabled={pending} onClick={markClosed}>
+                      {pending ? t('common.saving') : t('calendar.markClosed')}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+        {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -143,20 +199,14 @@ export function MealCalendar({
             <button type="button" className="btn-secondary p-2" onClick={() => setView(new Date(year, month - 1, 1))} aria-label={t('calendar.prev')}>
               <ChevronLeft size={16} />
             </button>
-            <h2 className="font-semibold">
-              {monthName} {titleYear}
-            </h2>
+            <h2 className="font-semibold">{monthName} {titleYear}</h2>
             <button type="button" className="btn-secondary p-2" onClick={() => setView(new Date(year, month + 1, 1))} aria-label={t('calendar.next')}>
               <ChevronRight size={16} />
             </button>
           </div>
 
           <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-500">
-            {weekdays.map((w) => (
-              <div key={w} className="py-2">
-                {w}
-              </div>
-            ))}
+            {weekdays.map((w) => <div key={w} className="py-2">{w}</div>)}
           </div>
 
           <div className="grid grid-cols-7 gap-1">
@@ -186,9 +236,7 @@ export function MealCalendar({
                   } ${isToday && active ? 'font-bold' : ''}`}
                 >
                   <div className="text-xs">{dayLabel}</div>
-                  {active && closed && (
-                    <div className="mt-1 truncate text-[10px] font-medium text-amber-700">{t('calendar.closed')}</div>
-                  )}
+                  {active && closed && <div className="mt-1 truncate text-[10px] font-medium text-amber-700">{t('calendar.closed')}</div>}
                   {active && !closed && meals && (meals.lunch > 0 || meals.dinner > 0 || meals.extra > 0) && (
                     <div className="mt-1 flex flex-wrap gap-0.5">
                       {meals.lunch > 0 && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
@@ -209,46 +257,24 @@ export function MealCalendar({
           </div>
         </section>
 
-        <section className="card space-y-4">
-          <h2 className="font-semibold">{t('calendar.dayDetail')}</h2>
-          {!selected && <p className="text-sm text-slate-500">{t('calendar.pickDay')}</p>}
-          {selected && (
-            <>
-              <div>
-                <div className="text-xs text-slate-500">{t('calendar.date')}</div>
-                <div className="font-semibold">{locale === 'bn' ? toBanglaDigits(selected) : selected}</div>
-              </div>
-              {selectedClosed ? (
-                <div className="rounded-2xl bg-amber-50 p-3 text-sm text-amber-900">
-                  <div className="font-semibold">{t('calendar.closed')}</div>
-                  <div className="mt-1">{selectedClosed}</div>
-                  {canManage && (
-                    <button type="button" className="btn-secondary mt-3 text-xs" disabled={pending} onClick={reopen}>
-                      {pending ? t('common.saving') : t('calendar.reopen')}
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-2 text-sm">
-                  <div>{t('meals.lunch')}: <strong>{selectedMeals?.lunch ?? '—'}</strong></div>
-                  <div>{t('meals.dinner')}: <strong>{selectedMeals?.dinner ?? '—'}</strong></div>
-                  <div>{t('meals.extra')}: <strong>{selectedMeals?.extra ?? 0}</strong></div>
-                  {canManage && (
-                    <div className="space-y-2 border-t pt-3">
-                      <p className="text-xs text-slate-500">{t('calendar.markHelp')}</p>
-                      <input className="input" value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t('calendar.reasonPlaceholder')} maxLength={200} />
-                      <button type="button" className="btn-primary w-full" disabled={pending} onClick={markClosed}>
-                        {pending ? t('common.saving') : t('calendar.markClosed')}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-          {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
-        </section>
+        <div className="hidden lg:block">
+          <DayDetail />
+        </div>
       </div>
+
+      {selected && (
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label={t('calendar.dayDetail')}>
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
+            onClick={() => setSelected(null)}
+            aria-label={t('common.cancel')}
+          />
+          <div className="absolute inset-x-0 bottom-0 max-h-[82vh] overflow-y-auto animate-[slideUp_.22s_ease-out]">
+            <DayDetail mobile />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
