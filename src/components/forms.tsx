@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { toast } from 'sonner'
 import {
   saveExpense,
   saveContribution,
@@ -12,10 +13,11 @@ import {
   recordSettlementPayment,
 } from '@/app/actions'
 import { useI18n } from '@/components/language-provider'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 function ActionError({ message }: { message: string }) {
   return message ? (
-    <p className="text-sm text-red-600" role="alert">
+    <p className="text-sm text-danger" role="alert">
       {message}
     </p>
   ) : null
@@ -45,9 +47,12 @@ export function ExpenseForm({ flatId, cycleId }: { flatId: string; cycleId: stri
           try {
             await saveExpense(data)
             formElement.reset()
+            toast.success('Expense saved successfully')
             router.refresh()
           } catch (err) {
-            setError(err instanceof Error ? err.message : t('common.error'))
+            const message = err instanceof Error ? err.message : t('common.error')
+            setError(message)
+            toast.error(message)
           }
         })
       }}
@@ -109,9 +114,12 @@ export function ContributionForm({
             formElement.reset()
             const el = formElement.elements.namedItem('userId') as HTMLSelectElement | null
             if (canChooseMember && el) el.value = userId
+            toast.success('Contribution saved successfully')
             router.refresh()
           } catch (err) {
-            setError(err instanceof Error ? err.message : t('common.error'))
+            const message = err instanceof Error ? err.message : t('common.error')
+            setError(message)
+            toast.error(message)
           }
         })
       }}
@@ -148,28 +156,40 @@ export function CloseCycleButton({ cycleId }: { cycleId: string }) {
   const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState('')
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  function confirmClose() {
+    setConfirmOpen(false)
+    setError('')
+    start(async () => {
+      try {
+        await closeCycle(cycleId)
+        toast.success('Cycle closed successfully')
+        router.refresh()
+      } catch (err) {
+        const message = err instanceof Error ? err.message : t('common.error')
+        setError(message)
+        toast.error(message)
+      }
+    })
+  }
+
   return (
     <div className="space-y-2">
-      <button
-        type="button"
-        className="btn-primary"
-        disabled={pending}
-        onClick={() => {
-          if (!window.confirm(t('settings.closeHelp'))) return
-          setError('')
-          start(async () => {
-            try {
-              await closeCycle(cycleId)
-              router.refresh()
-            } catch (err) {
-              setError(err instanceof Error ? err.message : t('common.error'))
-            }
-          })
-        }}
-      >
+      <button type="button" className="btn-primary" disabled={pending} onClick={() => setConfirmOpen(true)}>
         {pending ? t('common.saving') : t('settings.closeCycle')}
       </button>
       <ActionError message={error} />
+      <ConfirmDialog
+        open={confirmOpen}
+        title={t('settings.closeCycle')}
+        description="Closing this cycle will lock all meals and expenses and create the final settlement snapshot. Are you sure?"
+        confirmLabel={t('settings.closeCycle')}
+        destructive
+        pending={pending}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={confirmClose}
+      />
     </div>
   )
 }
@@ -179,29 +199,41 @@ export function LeaveFlatButton({ flatId }: { flatId: string }) {
   const router = useRouter()
   const [pending, start] = useTransition()
   const [error, setError] = useState('')
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  function confirmLeave() {
+    setConfirmOpen(false)
+    setError('')
+    start(async () => {
+      try {
+        await leaveFlat(flatId)
+        toast.success('You left the flat successfully')
+        router.push('/onboarding')
+        router.refresh()
+      } catch (err) {
+        const message = err instanceof Error ? err.message : t('common.error')
+        setError(message)
+        toast.error(message)
+      }
+    })
+  }
+
   return (
     <div className="space-y-2">
-      <button
-        type="button"
-        className="btn-secondary"
-        disabled={pending}
-        onClick={() => {
-          if (!window.confirm(t('settings.leaveHelp'))) return
-          setError('')
-          start(async () => {
-            try {
-              await leaveFlat(flatId)
-              router.push('/onboarding')
-              router.refresh()
-            } catch (err) {
-              setError(err instanceof Error ? err.message : t('common.error'))
-            }
-          })
-        }}
-      >
+      <button type="button" className="btn-secondary" disabled={pending} onClick={() => setConfirmOpen(true)}>
         {pending ? t('common.saving') : t('settings.leave')}
       </button>
       <ActionError message={error} />
+      <ConfirmDialog
+        open={confirmOpen}
+        title={t('settings.leave')}
+        description={t('settings.leaveHelp')}
+        confirmLabel={t('settings.leave')}
+        destructive
+        pending={pending}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={confirmLeave}
+      />
     </div>
   )
 }
@@ -227,9 +259,12 @@ export function MessClosedForm({ cycleId }: { cycleId: string }) {
               reason: String(form.get('reason') || t('calendar.defaultReason')),
             })
             formElement.reset()
+            toast.success('Closed day added')
             router.refresh()
           } catch (err) {
-            setError(err instanceof Error ? err.message : t('common.error'))
+            const message = err instanceof Error ? err.message : t('common.error')
+            setError(message)
+            toast.error(message)
           }
         })
       }}
@@ -261,9 +296,12 @@ export function RemoveClosedDayButton({ cycleId, date }: { cycleId: string; date
           start(async () => {
             try {
               await removeCycleClosedDay({ cycleId, date })
+              toast.success('Closed day removed')
               router.refresh()
             } catch (err) {
-              setError(err instanceof Error ? err.message : t('common.error'))
+              const message = err instanceof Error ? err.message : t('common.error')
+              setError(message)
+              toast.error(message)
             }
           })
         }
@@ -302,9 +340,12 @@ export function SettlementPaymentForm({
           try {
             await recordSettlementPayment({ settlementId, amount, note })
             formElement.reset()
+            toast.success('Settlement payment saved successfully')
             router.refresh()
           } catch (err) {
-            setError(err instanceof Error ? err.message : t('common.error'))
+            const message = err instanceof Error ? err.message : t('common.error')
+            setError(message)
+            toast.error(message)
           }
         })
       }}
