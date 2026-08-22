@@ -85,8 +85,8 @@ function LoginForm() {
     if (!user) return '/account-type'
     const { data: member } = await supabase.from('flat_members').select('flat_id').eq('user_id', user.id).eq('status', 'active').limit(1).maybeSingle()
     if (member?.flat_id) return '/dashboard'
-    const { data: subscription } = await supabase.from('manager_subscriptions').select('status,current_period_end').eq('user_id', user.id).maybeSingle()
-    const activeSubscription = !!subscription && ['active','trialing'].includes(subscription.status) && (!subscription.current_period_end || new Date(subscription.current_period_end) > new Date())
+    const { data: subscription } = await supabase.from('subscriptions').select('status,current_period_end').eq('user_id', user.id).maybeSingle()
+    const activeSubscription = !!subscription && ['active','trialing'].includes(subscription.status) && !!subscription.current_period_end && new Date(subscription.current_period_end) > new Date()
     if (activeSubscription) return '/onboarding?mode=create'
     return '/account-type'
   }
