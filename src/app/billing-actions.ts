@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { enforceRateLimit } from '@/lib/rate-limit'
+import { paymentRequestSchema } from '@/lib/validation'
 
 export async function submitManualManagerPayment(formData: FormData) {
   const s = await createClient()
@@ -11,16 +12,19 @@ export async function submitManualManagerPayment(formData: FormData) {
   if (!user) throw new Error('Not authenticated')
   await enforceRateLimit('submitManualManagerPayment', user.id)
 
-  const paymentMethod = String(formData.get('payment_method') ?? '')
-  const senderNumber = String(formData.get('sender_number') ?? '')
-  const transactionId = String(formData.get('transaction_id') ?? '')
-  const note = String(formData.get('note') ?? '')
+  const parsed = paymentRequestSchema.safeParse({
+    paymentMethod: String(formData.get('payment_method') ?? ''),
+    senderNumber: String(formData.get('sender_number') ?? ''),
+    transactionId: String(formData.get('transaction_id') ?? ''),
+    note: String(formData.get('note') ?? '') || undefined,
+  })
+  if (!parsed.success) throw new Error('Please check your payment method, sender number, and transaction ID.')
 
   const { error } = await s.rpc('create_manual_manager_payment', {
-    p_payment_method: paymentMethod,
-    p_sender_number: senderNumber,
-    p_transaction_id: transactionId,
-    p_note: note || null,
+    p_payment_method: parsed.data.paymentMethod,
+    p_sender_number: parsed.data.senderNumber,
+    p_transaction_id: parsed.data.transactionId,
+    p_note: parsed.data.note || null,
   })
 
   if (error) {
@@ -33,7 +37,8 @@ export async function submitManualManagerPayment(formData: FormData) {
   }
 
   revalidatePath('/settings')
-  redirect('/settings?payment=submitted')
+  revalidatePath('/billing')
+  redirect('/billing?payment=submitted')
 }
 
 export async function reviewManualManagerPayment(formData: FormData) {
