@@ -4,8 +4,8 @@
   "description": "Modern meal and household accounting for Bangladeshi flats, messes and small households.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f7f9f8",
-  "theme_color": "#16a34a",
+  "background_color": "#050706",
+  "theme_color": "#39ff88",
   "lang": "en-BD",
   "icons": [
     {
