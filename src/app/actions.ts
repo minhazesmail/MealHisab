@@ -43,10 +43,7 @@ type CycleCloseWarning = {
 
 async function currentUser() {
   const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+  const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) throw new Error('Not authenticated')
   return { supabase, user }
 }
@@ -68,20 +65,13 @@ async function assertOpenCycle(
   return cycle
 }
 
-export async function createFlat(input: {
-  name: string
-  address?: string
-  monthStartDay: number
-  mealPolicy: 'opt_in' | 'opt_out'
-}) {
-  const data = z
-    .object({
-      name: z.string().trim().min(2).max(100),
-      address: z.string().trim().max(200).optional(),
-      monthStartDay: z.number().int().min(1).max(28),
-      mealPolicy: z.enum(['opt_in', 'opt_out']),
-    })
-    .parse(input)
+export async function createFlat(input: { name: string; address?: string; monthStartDay: number; mealPolicy: 'opt_in' | 'opt_out' }) {
+  const data = z.object({
+    name: z.string().trim().min(2).max(100),
+    address: z.string().trim().max(200).optional(),
+    monthStartDay: z.number().int().min(1).max(28),
+    mealPolicy: z.enum(['opt_in', 'opt_out']),
+  }).parse(input)
   const { supabase, user } = await currentUser()
   await enforceRateLimit('createFlat', user.id)
   const { error } = await supabase.rpc('create_flat', {
@@ -111,37 +101,13 @@ export async function saveMeal(input: unknown) {
   await enforceRateLimit('saveMeal', user.id)
   const cycle = await assertOpenCycle(supabase, data.flatId, data.cycleId)
   if (data.userId !== user.id) {
-    const { data: membership } = await supabase
-      .from('flat_members')
-      .select('role')
-      .eq('flat_id', data.flatId)
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .maybeSingle()
-    if (!membership || !['admin', 'manager'].includes(membership.role)) {
-      throw new Error('You can only edit your own meals')
-    }
+    const { data: membership } = await supabase.from('flat_members').select('role').eq('flat_id', data.flatId).eq('user_id', user.id).eq('status', 'active').maybeSingle()
+    if (!membership || !['admin', 'manager'].includes(membership.role)) throw new Error('You can only edit your own meals')
   }
-
   const date = autoAssignCycleDate(cycle.start_date, cycle.end_date, data.date)
-
-  const { error } = await supabase.from('meal_logs').upsert(
-    {
-      flat_id: data.flatId,
-      cycle_id: data.cycleId,
-      user_id: data.userId,
-      date,
-      meal_type: data.mealType,
-      count: data.count,
-      created_by: user.id,
-    },
-    { onConflict: 'flat_id,user_id,date,meal_type' },
-  )
+  const { error } = await supabase.from('meal_logs').upsert({ flat_id: data.flatId, cycle_id: data.cycleId, user_id: data.userId, date, meal_type: data.mealType, count: data.count, created_by: user.id }, { onConflict: 'flat_id,user_id,date,meal_type' })
   if (error) throw extractDbError(error, 'saveMeal')
-  revalidatePath('/meals')
-  revalidatePath('/dashboard')
-  revalidatePath('/reports')
-  revalidatePath('/calendar')
+  revalidatePath('/meals'); revalidatePath('/dashboard'); revalidatePath('/reports'); revalidatePath('/calendar')
   return { date }
 }
 
@@ -150,28 +116,11 @@ export async function saveExpense(input: unknown) {
   const { supabase, user } = await currentUser()
   await enforceRateLimit('saveExpense', user.id)
   await assertOpenCycle(supabase, data.flatId, data.cycleId)
-  const { data: membership } = await supabase
-    .from('flat_members')
-    .select('role')
-    .eq('flat_id', data.flatId)
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .maybeSingle()
-  if (!membership || !['admin', 'manager'].includes(membership.role)) {
-    throw new Error('Only managers can record expenses')
-  }
-  const { error } = await supabase.from('expenses').insert({
-    flat_id: data.flatId,
-    cycle_id: data.cycleId,
-    amount: data.amount,
-    category: data.category,
-    note: data.note?.trim() || null,
-    created_by: user.id,
-  })
+  const { data: membership } = await supabase.from('flat_members').select('role').eq('flat_id', data.flatId).eq('user_id', user.id).eq('status', 'active').maybeSingle()
+  if (!membership || !['admin', 'manager'].includes(membership.role)) throw new Error('Only managers can record expenses')
+  const { error } = await supabase.from('expenses').insert({ flat_id: data.flatId, cycle_id: data.cycleId, amount: data.amount, category: data.category, note: data.note?.trim() || null, created_by: user.id })
   if (error) throw extractDbError(error, 'saveExpense')
-  revalidatePath('/expenses')
-  revalidatePath('/dashboard')
-  revalidatePath('/reports')
+  revalidatePath('/expenses'); revalidatePath('/dashboard'); revalidatePath('/reports')
 }
 
 export async function saveContribution(input: unknown) {
@@ -180,33 +129,13 @@ export async function saveContribution(input: unknown) {
   await enforceRateLimit('saveContribution', user.id)
   const cycle = await assertOpenCycle(supabase, data.flatId, data.cycleId)
   if (data.userId !== user.id) {
-    const { data: membership } = await supabase
-      .from('flat_members')
-      .select('role')
-      .eq('flat_id', data.flatId)
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .maybeSingle()
-    if (!membership || !['admin', 'manager'].includes(membership.role)) {
-      throw new Error('Only managers can record a contribution for another member')
-    }
+    const { data: membership } = await supabase.from('flat_members').select('role').eq('flat_id', data.flatId).eq('user_id', user.id).eq('status', 'active').maybeSingle()
+    if (!membership || !['admin', 'manager'].includes(membership.role)) throw new Error('Only managers can record a contribution for another member')
   }
-
   const date = autoAssignCycleDate(cycle.start_date, cycle.end_date, data.date)
-
-  const { error } = await supabase.from('contributions').insert({
-    flat_id: data.flatId,
-    cycle_id: data.cycleId,
-    user_id: data.userId,
-    amount: data.amount,
-    date,
-    created_by: user.id,
-    note: data.note?.trim() || null,
-  })
+  const { error } = await supabase.from('contributions').insert({ flat_id: data.flatId, cycle_id: data.cycleId, user_id: data.userId, amount: data.amount, date, created_by: user.id, note: data.note?.trim() || null })
   if (error) throw extractDbError(error, 'saveContribution')
-  revalidatePath('/contributions')
-  revalidatePath('/dashboard')
-  revalidatePath('/reports')
+  revalidatePath('/contributions'); revalidatePath('/dashboard'); revalidatePath('/reports')
   return { date }
 }
 
@@ -216,18 +145,9 @@ export async function getCycleCloseWarnings(cycleId: string): Promise<CycleClose
   await enforceRateLimit('closeCycle', user.id)
   const { data: cycle } = await supabase.from('cycles').select('flat_id,status').eq('id', id).maybeSingle()
   if (!cycle) throw new Error('Cycle not found')
-  const { data: membership } = await supabase
-    .from('flat_members')
-    .select('role')
-    .eq('flat_id', cycle.flat_id)
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .maybeSingle()
-  if (!membership || !['admin', 'manager'].includes(membership.role)) {
-    throw new Error('Only managers can close a cycle')
-  }
+  const { data: membership } = await supabase.from('flat_members').select('role').eq('flat_id', cycle.flat_id).eq('user_id', user.id).eq('status', 'active').maybeSingle()
+  if (!membership || !['admin', 'manager'].includes(membership.role)) throw new Error('Only managers can close a cycle')
   if (cycle.status !== 'open') throw new Error('This cycle is already closed')
-
   const { data, error } = await supabase.rpc('get_cycle_close_warnings', { p_cycle_id: id })
   if (error) throw extractDbError(error, 'getCycleCloseWarnings')
   return {
@@ -235,12 +155,7 @@ export async function getCycleCloseWarnings(cycleId: string): Promise<CycleClose
     meal_policy: data?.meal_policy === 'opt_in' ? 'opt_in' : 'opt_out',
     total_meals: Number(data?.total_meals ?? 0),
     grocery_total: Number(data?.grocery_total ?? 0),
-    sample_days: Array.isArray(data?.sample_days)
-      ? data.sample_days.map((day: { date?: string; meals?: number }) => ({
-          date: String(day.date ?? ''),
-          meals: Number(day.meals ?? 0),
-        }))
-      : [],
+    sample_days: Array.isArray(data?.sample_days) ? data.sample_days.map((day: { date?: string; meals?: number }) => ({ date: String(day.date ?? ''), meals: Number(day.meals ?? 0) })) : [],
   }
 }
 
@@ -250,27 +165,12 @@ export async function closeCycle(cycleId: string) {
   await enforceRateLimit('closeCycle', user.id)
   const { data: cycle } = await supabase.from('cycles').select('flat_id,status').eq('id', id).maybeSingle()
   if (!cycle) throw new Error('Cycle not found')
-  const { data: membership } = await supabase
-    .from('flat_members')
-    .select('role')
-    .eq('flat_id', cycle.flat_id)
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .maybeSingle()
-  if (!membership || !['admin', 'manager'].includes(membership.role)) {
-    throw new Error('Only managers can close a cycle')
-  }
+  const { data: membership } = await supabase.from('flat_members').select('role').eq('flat_id', cycle.flat_id).eq('user_id', user.id).eq('status', 'active').maybeSingle()
+  if (!membership || !['admin', 'manager'].includes(membership.role)) throw new Error('Only managers can close a cycle')
   if (cycle.status !== 'open') throw new Error('This cycle is already closed')
   const { error } = await supabase.rpc('close_cycle', { p_cycle_id: id })
   if (error) throw extractDbError(error, 'closeCycle')
-  revalidatePath('/dashboard')
-  revalidatePath('/reports')
-  revalidatePath('/meals')
-  revalidatePath('/expenses')
-  revalidatePath('/contributions')
-  revalidatePath('/settings')
-  revalidatePath('/settlements')
-  revalidatePath('/calendar')
+  revalidatePath('/dashboard'); revalidatePath('/reports'); revalidatePath('/meals'); revalidatePath('/expenses'); revalidatePath('/contributions'); revalidatePath('/settings'); revalidatePath('/settlements'); revalidatePath('/calendar')
 }
 
 export async function leaveFlat(flatId: string) {
@@ -279,60 +179,45 @@ export async function leaveFlat(flatId: string) {
   await enforceRateLimit('leaveFlat', user.id)
   const { error } = await supabase.rpc('leave_flat', { p_flat_id: id })
   if (error) throw extractDbError(error, 'leaveFlat')
-  revalidatePath('/settings')
-  revalidatePath('/dashboard')
-  revalidatePath('/settlements')
+  revalidatePath('/settings'); revalidatePath('/dashboard'); revalidatePath('/settlements')
 }
 
 export async function setCycleClosedDay(input: { cycleId: string; date: string; reason?: string }) {
-  const data = z
-    .object({ cycleId: z.string().uuid(), date: dateSchema, reason: z.string().trim().max(200).optional() })
-    .parse(input)
+  const data = z.object({ cycleId: z.string().uuid(), date: dateSchema, reason: z.string().trim().max(200).optional() }).parse(input)
   const { supabase, user } = await currentUser()
   await enforceRateLimit('setCycleClosedDay', user.id)
-  const { error } = await supabase.rpc('set_cycle_closed_day', {
-    p_cycle_id: data.cycleId,
-    p_date: data.date,
-    p_reason: data.reason || 'Mess closed',
-  })
+  const { error } = await supabase.rpc('set_cycle_closed_day', { p_cycle_id: data.cycleId, p_date: data.date, p_reason: data.reason || 'Mess closed' })
   if (error) throw extractDbError(error, 'setCycleClosedDay')
-  revalidatePath('/settings')
-  revalidatePath('/meals')
-  revalidatePath('/dashboard')
-  revalidatePath('/calendar')
+  revalidatePath('/settings'); revalidatePath('/meals'); revalidatePath('/dashboard'); revalidatePath('/calendar')
 }
 
 export async function removeCycleClosedDay(input: { cycleId: string; date: string }) {
   const data = z.object({ cycleId: z.string().uuid(), date: dateSchema }).parse(input)
   const { supabase, user } = await currentUser()
   await enforceRateLimit('removeCycleClosedDay', user.id)
-  const { error } = await supabase.rpc('remove_cycle_closed_day', {
-    p_cycle_id: data.cycleId,
-    p_date: data.date,
-  })
+  const { error } = await supabase.rpc('remove_cycle_closed_day', { p_cycle_id: data.cycleId, p_date: data.date })
   if (error) throw extractDbError(error, 'removeCycleClosedDay')
-  revalidatePath('/settings')
-  revalidatePath('/meals')
-  revalidatePath('/dashboard')
-  revalidatePath('/calendar')
+  revalidatePath('/settings'); revalidatePath('/meals'); revalidatePath('/dashboard'); revalidatePath('/calendar')
 }
 
-export async function recordSettlementPayment(input: {
-  settlementId: string
-  amount: number
-  note?: string
-}) {
-  const data = z
-    .object({ settlementId: z.string().uuid(), amount: z.number().positive(), note: z.string().max(500).optional() })
-    .parse(input)
+export async function recordSettlementPayment(input: { settlementId: string; amount: number; note?: string }) {
+  const data = z.object({ settlementId: z.string().uuid(), amount: z.number().positive().max(10000000), note: z.string().trim().max(500).optional() }).parse(input)
   const { supabase, user } = await currentUser()
   await enforceRateLimit('recordSettlementPayment', user.id)
-  const { error } = await supabase.rpc('record_settlement_payment', {
-    p_settlement_id: data.settlementId,
-    p_amount: data.amount,
-    p_note: data.note?.trim() || null,
-  })
+  const { error } = await supabase.rpc('record_settlement_payment', { p_settlement_id: data.settlementId, p_amount: Math.round(data.amount * 100) / 100, p_note: data.note || null })
   if (error) throw extractDbError(error, 'recordSettlementPayment')
-  revalidatePath('/settlements')
-  revalidatePath('/reports')
+  revalidatePath('/settlements'); revalidatePath('/reports'); revalidatePath('/dashboard')
+}
+
+export async function markNotificationRead(id: string) {
+  const { supabase, user } = await currentUser()
+  await enforceRateLimit('markNotificationRead', user.id)
+  const parsedId = z.string().uuid().parse(id)
+  const { error } = await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', parsedId)
+  if (error) throw extractDbError(error, 'markNotificationRead')
+  revalidatePath('/dashboard')
+}
+
+export async function getTodayDate() {
+  return todayInDhaka()
 }
