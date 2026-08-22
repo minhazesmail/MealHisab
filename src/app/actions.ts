@@ -33,6 +33,14 @@ const contributionSchema = z.object({
   date: dateSchema.optional(),
 })
 
+type CycleCloseWarning = {
+  warning: boolean
+  meal_policy: 'opt_in' | 'opt_out'
+  total_meals: number
+  grocery_total: number
+  sample_days: Array<{ date: string; meals: number }>
+}
+
 async function currentUser() {
   const supabase = await createClient()
   const {
@@ -141,7 +149,7 @@ export async function saveExpense(input: unknown) {
   const data = expenseSchema.parse(input)
   const { supabase, user } = await currentUser()
   await enforceRateLimit('saveExpense', user.id)
-  const cycle = await assertOpenCycle(supabase, data.flatId, data.cycleId)
+  await assertOpenCycle(supabase, data.flatId, data.cycleId)
   const { data: membership } = await supabase
     .from('flat_members')
     .select('role')
@@ -150,15 +158,15 @@ export async function saveExpense(input: unknown) {
     .eq('status', 'active')
     .maybeSingle()
   if (!membership || !['admin', 'manager'].includes(membership.role)) {
-    throw new Error('Only managers can add expenses')
+    throw new Error('Only managers can record expenses')
   }
   const { error } = await supabase.from('expenses').insert({
     flat_id: data.flatId,
     cycle_id: data.cycleId,
     amount: data.amount,
     category: data.category,
-    created_by: user.id,
     note: data.note?.trim() || null,
+    created_by: user.id,
   })
   if (error) throw extractDbError(error, 'saveExpense')
   revalidatePath('/expenses')
@@ -200,6 +208,40 @@ export async function saveContribution(input: unknown) {
   revalidatePath('/dashboard')
   revalidatePath('/reports')
   return { date }
+}
+
+export async function getCycleCloseWarnings(cycleId: string): Promise<CycleCloseWarning> {
+  const id = z.string().uuid().parse(cycleId)
+  const { supabase, user } = await currentUser()
+  await enforceRateLimit('closeCycle', user.id)
+  const { data: cycle } = await supabase.from('cycles').select('flat_id,status').eq('id', id).maybeSingle()
+  if (!cycle) throw new Error('Cycle not found')
+  const { data: membership } = await supabase
+    .from('flat_members')
+    .select('role')
+    .eq('flat_id', cycle.flat_id)
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .maybeSingle()
+  if (!membership || !['admin', 'manager'].includes(membership.role)) {
+    throw new Error('Only managers can close a cycle')
+  }
+  if (cycle.status !== 'open') throw new Error('This cycle is already closed')
+
+  const { data, error } = await supabase.rpc('get_cycle_close_warnings', { p_cycle_id: id })
+  if (error) throw extractDbError(error, 'getCycleCloseWarnings')
+  return {
+    warning: Boolean(data?.warning),
+    meal_policy: data?.meal_policy === 'opt_in' ? 'opt_in' : 'opt_out',
+    total_meals: Number(data?.total_meals ?? 0),
+    grocery_total: Number(data?.grocery_total ?? 0),
+    sample_days: Array.isArray(data?.sample_days)
+      ? data.sample_days.map((day: { date?: string; meals?: number }) => ({
+          date: String(day.date ?? ''),
+          meals: Number(day.meals ?? 0),
+        }))
+      : [],
+  }
 }
 
 export async function closeCycle(cycleId: string) {
@@ -281,37 +323,16 @@ export async function recordSettlementPayment(input: {
   note?: string
 }) {
   const data = z
-    .object({
-      settlementId: z.string().uuid(),
-      amount: z.number().positive().max(10000000),
-      note: z.string().trim().max(500).optional(),
-    })
+    .object({ settlementId: z.string().uuid(), amount: z.number().positive(), note: z.string().max(500).optional() })
     .parse(input)
   const { supabase, user } = await currentUser()
   await enforceRateLimit('recordSettlementPayment', user.id)
   const { error } = await supabase.rpc('record_settlement_payment', {
     p_settlement_id: data.settlementId,
-    p_amount: Math.round(data.amount * 100) / 100,
-    p_note: data.note || null,
+    p_amount: data.amount,
+    p_note: data.note?.trim() || null,
   })
   if (error) throw extractDbError(error, 'recordSettlementPayment')
   revalidatePath('/settlements')
   revalidatePath('/reports')
-  revalidatePath('/dashboard')
-}
-
-export async function markNotificationRead(id: string) {
-  const { supabase, user } = await currentUser()
-  await enforceRateLimit('markNotificationRead', user.id)
-  const parsedId = z.string().uuid().parse(id)
-  const { error } = await supabase
-    .from('notifications')
-    .update({ read_at: new Date().toISOString() })
-    .eq('id', parsedId)
-  if (error) throw extractDbError(error, 'markNotificationRead')
-  revalidatePath('/dashboard')
-}
-
-export async function getTodayDate() {
-  return todayInDhaka()
 }
