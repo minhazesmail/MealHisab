@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { autoAssignCycleDate, todayInDhaka } from '@/lib/dates'
 import { enforceIpRateLimit, enforceRateLimit } from '@/lib/rate-limit'
+import { extractDbError } from '@/lib/db-errors'
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date')
 const mealSchema = z.object({
@@ -53,7 +54,7 @@ async function assertOpenCycle(
     .eq('id', cycleId)
     .eq('flat_id', flatId)
     .maybeSingle()
-  if (error) throw new Error(error.message)
+  if (error) throw extractDbError(error, 'assertOpenCycle')
   if (!cycle) throw new Error('Cycle not found')
   if (cycle.status !== 'open') throw new Error('This cycle is already closed')
   return cycle
@@ -81,7 +82,7 @@ export async function createFlat(input: {
     p_month_start_day: data.monthStartDay,
     p_meal_policy: data.mealPolicy,
   })
-  if (error) throw new Error(error.message)
+  if (error) throw extractDbError(error, 'createFlat')
   revalidatePath('/onboarding')
   revalidatePath('/dashboard')
 }
@@ -91,7 +92,7 @@ export async function joinFlat(inviteCode: string) {
   await enforceIpRateLimit('joinFlat')
   const { supabase } = await currentUser()
   const { error } = await supabase.rpc('join_flat', { p_invite_code: code })
-  if (error) throw new Error(error.message)
+  if (error) throw extractDbError(error, 'joinFlat')
   revalidatePath('/onboarding')
   revalidatePath('/dashboard')
 }
@@ -128,7 +129,7 @@ export async function saveMeal(input: unknown) {
     },
     { onConflict: 'flat_id,user_id,date,meal_type' },
   )
-  if (error) throw new Error(error.message)
+  if (error) throw extractDbError(error, 'saveMeal')
   revalidatePath('/meals')
   revalidatePath('/dashboard')
   revalidatePath('/reports')
@@ -159,7 +160,7 @@ export async function saveExpense(input: unknown) {
     created_by: user.id,
     note: data.note?.trim() || null,
   })
-  if (error) throw new Error(error.message)
+  if (error) throw extractDbError(error, 'saveExpense')
   revalidatePath('/expenses')
   revalidatePath('/dashboard')
   revalidatePath('/reports')
@@ -194,7 +195,7 @@ export async function saveContribution(input: unknown) {
     created_by: user.id,
     note: data.note?.trim() || null,
   })
-  if (error) throw new Error(error.message)
+  if (error) throw extractDbError(error, 'saveContribution')
   revalidatePath('/contributions')
   revalidatePath('/dashboard')
   revalidatePath('/reports')
@@ -219,7 +220,7 @@ export async function closeCycle(cycleId: string) {
   }
   if (cycle.status !== 'open') throw new Error('This cycle is already closed')
   const { error } = await supabase.rpc('close_cycle', { p_cycle_id: id })
-  if (error) throw new Error(error.message)
+  if (error) throw extractDbError(error, 'closeCycle')
   revalidatePath('/dashboard')
   revalidatePath('/reports')
   revalidatePath('/meals')
@@ -235,7 +236,7 @@ export async function leaveFlat(flatId: string) {
   const { supabase, user } = await currentUser()
   await enforceRateLimit('leaveFlat', user.id)
   const { error } = await supabase.rpc('leave_flat', { p_flat_id: id })
-  if (error) throw new Error(error.message)
+  if (error) throw extractDbError(error, 'leaveFlat')
   revalidatePath('/settings')
   revalidatePath('/dashboard')
   revalidatePath('/settlements')
@@ -252,7 +253,7 @@ export async function setCycleClosedDay(input: { cycleId: string; date: string; 
     p_date: data.date,
     p_reason: data.reason || 'Mess closed',
   })
-  if (error) throw new Error(error.message)
+  if (error) throw extractDbError(error, 'setCycleClosedDay')
   revalidatePath('/settings')
   revalidatePath('/meals')
   revalidatePath('/dashboard')
@@ -267,7 +268,7 @@ export async function removeCycleClosedDay(input: { cycleId: string; date: strin
     p_cycle_id: data.cycleId,
     p_date: data.date,
   })
-  if (error) throw new Error(error.message)
+  if (error) throw extractDbError(error, 'removeCycleClosedDay')
   revalidatePath('/settings')
   revalidatePath('/meals')
   revalidatePath('/dashboard')
@@ -293,7 +294,7 @@ export async function recordSettlementPayment(input: {
     p_amount: Math.round(data.amount * 100) / 100,
     p_note: data.note || null,
   })
-  if (error) throw new Error(error.message)
+  if (error) throw extractDbError(error, 'recordSettlementPayment')
   revalidatePath('/settlements')
   revalidatePath('/reports')
   revalidatePath('/dashboard')
@@ -307,7 +308,7 @@ export async function markNotificationRead(id: string) {
     .from('notifications')
     .update({ read_at: new Date().toISOString() })
     .eq('id', parsedId)
-  if (error) throw new Error(error.message)
+  if (error) throw extractDbError(error, 'markNotificationRead')
   revalidatePath('/dashboard')
 }
 
