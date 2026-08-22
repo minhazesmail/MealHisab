@@ -6,6 +6,7 @@ import { LanguageToggle, AppNav, MobileNav } from '@/components/app-shell'
 import { SignOutButton } from '@/components/sign-out-button'
 import { NotificationBell } from '@/components/notification-bell'
 import { SubscriptionGraceBanner } from '@/components/subscription-grace-banner'
+import { FlatRecoveryBanner } from '@/components/flat-recovery-banner'
 
 export default async function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const supabase = await createClient()
@@ -13,24 +14,45 @@ export default async function AppLayout({ children }: Readonly<{ children: React
   if (!claimsData?.claims?.sub) redirect('/login')
 
   const userId = String(claimsData.claims.sub)
-  const { data: membership } = await supabase.from('flat_members').select('role,status').eq('user_id', userId).eq('status', 'active').in('role', ['admin', 'manager']).maybeSingle()
+  const { data: membership } = await supabase
+    .from('flat_members')
+    .select('flat_id,role,status')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .maybeSingle()
+
   let banner: React.ReactNode = null
-  if (membership) {
-    const { data: subscription } = await supabase.from('subscriptions').select('status,current_period_end').eq('user_id', userId).eq('plan', 'manager_monthly').maybeSingle()
-    const end = subscription?.current_period_end ? new Date(subscription.current_period_end) : null
-    const now = new Date()
-    let state: 'expiring' | 'grace' | 'locked' | 'hidden' = 'hidden'
-    let daysRemaining = 0
-    if (end && ['active', 'trialing'].includes(subscription?.status ?? '') && end > now) {
-      const days = Math.ceil((end.getTime() - now.getTime()) / 86400000)
-      if (days <= 7) state = 'expiring'
-    } else if (end && ['active', 'trialing', 'past_due'].includes(subscription?.status ?? '') && end <= now && end > new Date(now.getTime() - 7 * 86400000)) {
-      state = 'grace'
-      daysRemaining = Math.max(1, Math.ceil((end.getTime() + 7 * 86400000 - now.getTime()) / 86400000))
-    } else {
-      state = 'locked'
+  if (membership?.flat_id) {
+    const { data: flat } = await supabase.from('flats').select('owner_id').eq('id', membership.flat_id).maybeSingle()
+    if (flat?.owner_id) {
+      const { data: subscription } = await supabase.from('subscriptions').select('status,current_period_end').eq('user_id', flat.owner_id).eq('plan', 'manager_monthly').maybeSingle()
+      const end = subscription?.current_period_end ? new Date(subscription.current_period_end) : null
+      const now = new Date()
+      const ownerIsManager = membership.role === 'admin' || membership.role === 'manager'
+
+      if (ownerIsManager) {
+        let state: 'expiring' | 'grace' | 'locked' | 'hidden' = 'hidden'
+        let daysRemaining = 0
+        if (end && ['active', 'trialing'].includes(subscription?.status ?? '') && end > now) {
+          const days = Math.ceil((end.getTime() - now.getTime()) / 86400000)
+          if (days <= 7) state = 'expiring'
+        } else if (end && ['active', 'trialing', 'past_due'].includes(subscription?.status ?? '') && end <= now && end > new Date(now.getTime() - 7 * 86400000)) {
+          state = 'grace'
+          daysRemaining = Math.max(1, Math.ceil((end.getTime() + 7 * 86400000 - now.getTime()) / 86400000))
+        } else {
+          state = 'locked'
+        }
+        banner = <SubscriptionGraceBanner state={state} daysRemaining={daysRemaining} periodEnd={subscription?.current_period_end ?? null} />
+      } else if (!end || end <= now) {
+        const graceEnd = end ? new Date(end.getTime() + 7 * 86400000) : new Date(0)
+        const recoveryEnd = end ? new Date(end.getTime() + 30 * 86400000) : new Date(0)
+        if (now > graceEnd && now <= recoveryEnd) {
+          banner = <FlatRecoveryBanner flatId={membership.flat_id} state="read_only_recovery" />
+        } else if (now > recoveryEnd) {
+          banner = <FlatRecoveryBanner flatId={membership.flat_id} state="support_takeover_eligible" />
+        }
+      }
     }
-    banner = <SubscriptionGraceBanner state={state} daysRemaining={daysRemaining} periodEnd={subscription?.current_period_end ?? null} />
   }
 
   return (
