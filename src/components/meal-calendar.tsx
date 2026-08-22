@@ -146,11 +146,11 @@ export function MealCalendar({
             </button>
           )}
         </div>
-        {!selected && <p className="text-sm text-slate-500">{t('calendar.pickDay')}</p>}
+        {!selected && <p className="text-sm text-muted">{t('calendar.pickDay')}</p>}
         {selected && (
           <>
             <div>
-              <div className="text-xs text-slate-500">{t('calendar.date')}</div>
+              <div className="text-xs text-muted">{t('calendar.date')}</div>
               <div className="font-semibold">{locale === 'bn' ? toBanglaDigits(selected) : selected}</div>
             </div>
             {selectedClosed ? (
@@ -170,7 +170,7 @@ export function MealCalendar({
                 <div>{t('meals.extra')}: <strong>{selectedMeals?.extra ?? 0}</strong></div>
                 {canManage && (
                   <div className="space-y-2 border-t border-line pt-3">
-                    <p className="text-xs text-slate-500">{t('calendar.markHelp')}</p>
+                    <p className="text-xs text-muted">{t('calendar.markHelp')}</p>
                     <input className="input" value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t('calendar.reasonPlaceholder')} maxLength={200} />
                     <button type="button" className="btn-primary w-full" disabled={pending} onClick={markClosed}>
                       {pending ? t('common.saving') : t('calendar.markClosed')}
@@ -181,7 +181,7 @@ export function MealCalendar({
             )}
           </>
         )}
-        {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
+        {error && <p className="text-sm text-danger" role="alert">{error}</p>}
       </div>
     )
   }
@@ -190,22 +190,22 @@ export function MealCalendar({
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{t('calendar.title')}</h1>
-        <p className="text-sm text-slate-500">{t('calendar.sub')}</p>
+        <p className="text-sm text-muted">{t('calendar.sub')}</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_.9fr]">
         <section className="card">
           <div className="mb-4 flex items-center justify-between">
-            <button type="button" className="btn-secondary p-2" onClick={() => setView(new Date(year, month - 1, 1))} aria-label={t('calendar.prev')}>
+            <button type="button" className="btn-secondary min-h-11 min-w-11 p-2" onClick={() => setView(new Date(year, month - 1, 1))} aria-label={t('calendar.prev')}>
               <ChevronLeft size={16} />
             </button>
             <h2 className="font-semibold">{monthName} {titleYear}</h2>
-            <button type="button" className="btn-secondary p-2" onClick={() => setView(new Date(year, month + 1, 1))} aria-label={t('calendar.next')}>
+            <button type="button" className="btn-secondary min-h-11 min-w-11 p-2" onClick={() => setView(new Date(year, month + 1, 1))} aria-label={t('calendar.next')}>
               <ChevronRight size={16} />
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-500">
+          <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-muted">
             {weekdays.map((w) => <div key={w} className="py-2">{w}</div>)}
           </div>
 
@@ -225,7 +225,8 @@ export function MealCalendar({
                   type="button"
                   disabled={!active}
                   onClick={() => setSelected(ymd)}
-                  className={`min-h-[64px] rounded-xl border p-1.5 text-left transition ${
+                  aria-label={`${dayLabel} ${monthName} ${year}`}
+                  className={`min-h-[64px] rounded-xl border p-2.5 text-left transition sm:p-1.5 ${
                     !active
                       ? 'border-transparent bg-slate-50 text-slate-300'
                       : isSelected
@@ -238,7 +239,7 @@ export function MealCalendar({
                   <div className="text-xs">{dayLabel}</div>
                   {active && closed && <div className="mt-1 truncate text-[10px] font-medium text-amber-700">{t('calendar.closed')}</div>}
                   {active && !closed && meals && (meals.lunch > 0 || meals.dinner > 0 || meals.extra > 0) && (
-                    <div className="mt-1 flex flex-wrap gap-0.5">
+                    <div className="mt-1 flex flex-wrap gap-0.5" aria-hidden="true">
                       {meals.lunch > 0 && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
                       {meals.dinner > 0 && <span className="h-1.5 w-1.5 rounded-full bg-teal-600" />}
                       {meals.extra > 0 && <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />}
@@ -249,7 +250,7 @@ export function MealCalendar({
             })}
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-slate-500">
+          <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-muted">
             <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-500" /> {t('meals.lunch')}</span>
             <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-teal-600" /> {t('meals.dinner')}</span>
             <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-sky-500" /> {t('meals.extra')}</span>
@@ -264,12 +265,7 @@ export function MealCalendar({
 
       {selected && (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label={t('calendar.dayDetail')}>
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
-            onClick={() => setSelected(null)}
-            aria-label={t('common.cancel')}
-          />
+          <button type="button" className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={() => setSelected(null)} aria-label={t('common.cancel')} />
           <div className="absolute inset-x-0 bottom-0 max-h-[82vh] overflow-y-auto animate-[slideUp_.22s_ease-out]">
             <DayDetail mobile />
           </div>
