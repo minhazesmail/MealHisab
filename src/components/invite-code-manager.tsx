@@ -1,17 +1,21 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { generateInviteCode, revokeInviteCode } from '@/app/invite-actions'
 
 type InviteRow = { id: string; code: string; status: 'active'|'used'|'revoked'|'expired'; maxUses: number; usedCount: number; createdMonth: string; createdAt: string; revokedAt: string | null; expiresAt: string | null; usedAt: string | null }
+
+function dhakaMonthKey(date = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka', year: 'numeric', month: '2-digit' }).format(date)
+}
 
 export function InviteCodeManager({ flatId, rows }: { flatId: string; rows: InviteRow[] }) {
   const [pending, start] = useTransition()
   const [error, setError] = useState('')
   const [latest, setLatest] = useState<string | null>(null)
   const now = Date.now()
-  const currentMonth = new Date().toISOString().slice(0, 7)
+  const currentMonth = useMemo(() => dhakaMonthKey(), [])
   const generatedThisMonth = rows.filter((row) => row.createdMonth?.slice(0, 7) === currentMonth).length
   const remaining = Math.max(0, 10 - generatedThisMonth)
 
@@ -58,6 +62,6 @@ export function InviteCodeManager({ flatId, rows }: { flatId: string; rows: Invi
         </div>
       })}
     </div>
-    <p className="text-xs text-muted">Example: generate 8 codes → 8 / 10 used this month → 2 remaining. Members never pay to join with a valid active code.</p>
+    <p className="text-xs text-muted">Calendar-month quota resets at 12:00 AM Asia/Dhaka on the 1st of each month. Members never pay to join with a valid active code.</p>
   </section>
 }
