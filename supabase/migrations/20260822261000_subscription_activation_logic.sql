@@ -61,6 +61,7 @@ $$;
 
 revoke all on function private.activate_manager_subscription(uuid) from public;
 grant execute on function private.activate_manager_subscription(uuid) to authenticated;
+grant execute on function private.activate_manager_subscription(uuid) to service_role;
 
 -- Replace manual approval activation with the canonical helper.
 create or replace function public.review_manager_payment_request(
