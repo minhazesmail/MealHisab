@@ -2,13 +2,230 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
-* { box-sizing: border-box; }
-html, body { min-height: 100%; }
-body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #f8fafc; color: #0f172a; }
-.dark body { background: #020617; color: #e2e8f0; }
-.card { @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-soft dark:border-slate-800 dark:bg-slate-900; }
-.btn { @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-green-500 disabled:cursor-not-allowed disabled:opacity-50; }
-.btn-primary { @apply btn bg-green-600 text-white hover:bg-green-700; }
-.btn-secondary { @apply btn bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700; }
-.input { @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 dark:border-slate-700 dark:bg-slate-950 dark:focus:ring-green-950; }
+:root {
+  color-scheme: dark;
+  --mh-bg: #050706;
+  --mh-surface: #0a0f0b;
+  --mh-surface-2: #0d1510;
+  --mh-surface-3: #111b14;
+  --mh-border: #1b2b20;
+  --mh-border-strong: #284832;
+  --mh-text: #f2fff5;
+  --mh-muted: #8da292;
+  --mh-green: #39ff88;
+  --mh-green-2: #19d96b;
+  --mh-green-deep: #0d6b36;
+  --mh-danger: #ff6b81;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+html {
+  background: var(--mh-bg);
+}
+
+body {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  background:
+    radial-gradient(circle at 10% -10%, rgba(57, 255, 136, 0.09), transparent 28%),
+    radial-gradient(circle at 90% 0%, rgba(25, 217, 107, 0.07), transparent 24%),
+    var(--mh-bg);
+  color: var(--mh-text);
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(57, 255, 136, 0.24);
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #060907;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid #060907;
+  border-radius: 999px;
+  background: #1c4429;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2b6a40;
+}
+
+.card {
+  @apply rounded-2xl p-5 shadow-soft;
+  border: 1px solid var(--mh-border);
+  background: linear-gradient(180deg, rgba(15, 25, 18, 0.98), rgba(8, 13, 10, 0.98));
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition focus:outline-none disabled:cursor-not-allowed disabled:opacity-50;
+  border: 1px solid transparent;
+}
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 3px rgba(57, 255, 136, 0.18);
+}
+
+.btn-primary {
+  @apply btn text-black;
+  background: linear-gradient(135deg, var(--mh-green), var(--mh-green-2));
+  box-shadow: 0 10px 30px rgba(25, 217, 107, 0.16);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  @apply btn;
+  color: var(--mh-text);
+  border-color: var(--mh-border-strong);
+  background: #101810;
+}
+
+.btn-secondary:hover {
+  background: #172319;
+}
+
+.input {
+  @apply w-full rounded-xl px-3 py-2.5 text-sm outline-none transition;
+  color: var(--mh-text);
+  border: 1px solid var(--mh-border-strong);
+  background: #070c08;
+}
+
+.input::placeholder {
+  color: #64746a;
+}
+
+.input:focus {
+  border-color: var(--mh-green-2);
+  box-shadow: 0 0 0 3px rgba(57, 255, 136, 0.1);
+}
+
+/* Existing utility classes are still used throughout the app. Keep them visually aligned
+   with the new black / neon-green system without requiring every screen to be rewritten. */
+[class~="bg-white"],
+[class*="bg-white/"] {
+  background-color: var(--mh-surface) !important;
+}
+
+[class~="bg-slate-50"],
+[class~="bg-slate-100"],
+[class~="bg-slate-200"],
+[class~="bg-slate-800"],
+[class~="bg-slate-900"],
+[class~="bg-slate-950"] {
+  background-color: var(--mh-surface-2) !important;
+}
+
+[class~="bg-green-50"],
+[class~="bg-green-100"],
+[class~="bg-green-600"],
+[class~="bg-emerald-50"],
+[class~="bg-emerald-100"] {
+  background-color: rgba(20, 105, 55, 0.22) !important;
+}
+
+[class~="text-slate-950"],
+[class~="text-slate-900"],
+[class~="text-slate-800"],
+[class~="text-slate-700"],
+[class~="text-slate-600"] {
+  color: var(--mh-text) !important;
+}
+
+[class~="text-slate-500"],
+[class~="text-slate-400"],
+[class~="text-slate-300"] {
+  color: var(--mh-muted) !important;
+}
+
+[class~="text-green-800"],
+[class~="text-green-700"],
+[class~="text-green-600"],
+[class~="text-emerald-800"],
+[class~="text-emerald-700"],
+[class~="text-emerald-600"] {
+  color: var(--mh-green) !important;
+}
+
+[class~="border-slate-100"],
+[class~="border-slate-200"],
+[class~="border-slate-300"],
+[class~="border-slate-700"],
+[class~="border-slate-800"],
+[class~="border-emerald-100"],
+[class~="border-emerald-200"],
+[class~="border-white"] {
+  border-color: var(--mh-border) !important;
+}
+
+[class*="border-white/"] {
+  border-color: var(--mh-border-strong) !important;
+}
+
+[class~="text-red-600"],
+[class~="text-rose-500"] {
+  color: var(--mh-danger) !important;
+}
+
+[class~="bg-red-50"],
+[class~="bg-rose-50"] {
+  background-color: rgba(255, 107, 129, 0.08) !important;
+}
+
+[class~="bg-slate-950"] {
+  background: linear-gradient(135deg, #060907, #0b130d) !important;
+}
+
+[class~="bg-green-600"],
+[class~="bg-emerald-600"] {
+  background: linear-gradient(135deg, var(--mh-green), var(--mh-green-2)) !important;
+  color: #041007 !important;
+}
+
+[class~="bg-green-600"]:hover,
+[class~="bg-emerald-600"]:hover {
+  filter: brightness(1.06);
+}
+
+[class~="hover:bg-slate-100"]:hover,
+[class~="hover:bg-slate-200"]:hover,
+[class~="hover:bg-white"]:hover,
+[class~="hover:bg-emerald-50"]:hover,
+[class~="hover:bg-emerald-100"]:hover,
+[class~="hover:bg-green-700"]:hover {
+  background-color: #172319 !important;
+}
+
+[class~="hover:bg-emerald-100"]:hover,
+[class~="hover:bg-green-700"]:hover {
+  color: var(--mh-green) !important;
+}
+
+[class~="shadow-soft"] {
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.025) !important;
+}
+
+/* Landing-page specific surfaces that use arbitrary Tailwind colors. */
+[class~="bg-[#f7f9f8]"] {
+  background: var(--mh-bg) !important;
+}
