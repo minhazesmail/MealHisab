@@ -1,6 +1,15 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ExpenseForm } from '@/components/forms'
+import { fetchAllRows } from '@/lib/supabase/pagination'
+
+type ExpenseRow = {
+  id: string
+  amount: number
+  category: 'grocery' | 'cook_salary' | 'gas' | 'other'
+  note: string | null
+  created_at: string
+}
 
 export default async function ExpensesPage() {
   const s = await createClient()
@@ -11,8 +20,17 @@ export default async function ExpensesPage() {
   const { data: c, error: cycleError } = await s.from('cycles').select('id,start_date,end_date').eq('flat_id', m.flat_id).eq('status', 'open').order('start_date', { ascending: false }).limit(1).maybeSingle()
   if (cycleError) return <div className="card text-sm text-red-600">Could not load the current cycle.</div>
   if (!c) return <div className="card">No open cycle.</div>
-  const { data: expenses, error: expensesError } = await s.from('expenses').select('id,amount,category,note,created_at').eq('cycle_id', c.id).order('created_at', { ascending: false })
-  if (expensesError) return <div className="card text-sm text-red-600">Could not load expenses.</div>
-  const total = (expenses ?? []).reduce((sum, e) => sum + Number(e.amount), 0)
-  return <div className="space-y-6"><div><h1 className="text-2xl font-bold">Expenses</h1><p className="text-sm text-slate-500">Food cost uses grocery only; other shared costs stay separate.</p></div><div className="grid gap-4 lg:grid-cols-[360px_1fr]"><ExpenseForm flatId={m.flat_id} cycleId={c.id}/><section className="card"><div className="mb-4 flex items-center justify-between"><h2 className="font-semibold">Current cycle</h2><span className="font-bold">৳{total.toFixed(2)}</span></div><div className="space-y-3">{(expenses ?? []).map((e) => <div key={e.id} className="flex items-center justify-between border-b pb-3 text-sm"><div><div className="font-medium capitalize">{String(e.category).replace('_', ' ')}</div><div className="text-slate-500">{e.note || '—'}</div></div><div className="font-semibold">৳{Number(e.amount).toFixed(2)}</div></div>)}{(expenses ?? []).length === 0 && <p className="text-sm text-slate-500">No expenses recorded yet.</p>}</div></section></div></div>
+
+  let expenses: ExpenseRow[]
+  try {
+    expenses = await fetchAllRows<ExpenseRow>(
+      s.from('expenses').select('id,amount,category,note,created_at').eq('cycle_id', c.id).order('created_at', { ascending: false }),
+    )
+  } catch (error) {
+    console.error('[MealHisab][expenses-pagination]', error)
+    return <div className="card text-sm text-red-600">Could not load expenses.</div>
+  }
+
+  const total = expenses.reduce((sum, e) => sum + Number(e.amount), 0)
+  return <div className="space-y-6"><div><h1 className="text-2xl font-bold">Expenses</h1><p className="text-sm text-slate-500">Food cost uses grocery only; other shared costs stay separate.</p></div><div className="grid gap-4 lg:grid-cols-[360px_1fr]"><ExpenseForm flatId={m.flat_id} cycleId={c.id}/><section className="card"><div className="mb-4 flex items-center justify-between"><h2 className="font-semibold">Current cycle</h2><span className="font-bold">৳{total.toFixed(2)}</span></div><div className="space-y-3">{expenses.map((e) => <div key={e.id} className="flex items-center justify-between border-b pb-3 text-sm"><div><div className="font-medium capitalize">{String(e.category).replace('_', ' ')}</div><div className="text-slate-500">{e.note || '—'}</div></div><div className="font-semibold">৳{Number(e.amount).toFixed(2)}</div></div>)}{expenses.length === 0 && <p className="text-sm text-slate-500">No expenses recorded yet.</p>}</div></section></div></div>
 }
