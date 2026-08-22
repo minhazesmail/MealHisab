@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { SettlementExportButton } from '@/components/settlement-export-button'
@@ -11,7 +12,7 @@ export default async function ReportsPage() {
 
   const { data: m } = await s
     .from('flat_members')
-    .select('flat_id')
+    .select('flat_id,role')
     .eq('user_id', user.id)
     .eq('status', 'active')
     .maybeSingle()
@@ -23,29 +24,34 @@ export default async function ReportsPage() {
     .eq('flat_id', m.flat_id)
     .order('start_date', { ascending: false })
 
+  const canManage = m.role === 'admin' || m.role === 'manager'
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Reports</h1>
-        <p className="text-sm text-slate-500">Closed cycles are immutable settlement snapshots.</p>
+        <p className="text-sm text-muted">Closed cycles are immutable settlement snapshots.</p>
       </div>
       {(cycles ?? [])
         .filter((c) => c.status === 'closed')
         .map((c) => (
           <section key={c.id} className="card">
-            <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="font-semibold">
                   {c.start_date} → {c.end_date}
                 </h2>
-                <p className="text-sm text-slate-500">Closed cycle</p>
+                <p className="text-sm text-muted">Closed cycle</p>
               </div>
-              <SettlementExportButton cycleId={c.id} />
+              <div className="flex flex-wrap gap-2">
+                {canManage && <Link href={`/reports/statement/${c.id}`} className="btn-secondary text-xs">Print statement</Link>}
+                <SettlementExportButton cycleId={c.id} />
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[650px] text-sm">
                 <thead>
-                  <tr className="border-b text-left text-slate-500">
+                  <tr className="border-b border-line text-left text-muted">
                     <th className="py-2">Member</th>
                     <th>Meals</th>
                     <th>Meal cost</th>
@@ -62,12 +68,12 @@ export default async function ReportsPage() {
                       total_contribution: number
                       balance: number
                     }) => (
-                      <tr key={r.user_id} className="border-b last:border-0">
+                      <tr key={r.user_id} className="border-b border-line last:border-0">
                         <td className="py-2">{r.user_id === user.id ? 'You' : 'Member'}</td>
                         <td>{r.total_meals}</td>
                         <td>৳{Number(r.meal_cost).toFixed(2)}</td>
                         <td>৳{Number(r.total_contribution).toFixed(2)}</td>
-                        <td className={Number(r.balance) < 0 ? 'text-red-600' : 'text-green-700'}>
+                        <td className={Number(r.balance) < 0 ? 'text-danger' : 'text-brand-green'}>
                           ৳{Number(r.balance).toFixed(2)}
                         </td>
                       </tr>
