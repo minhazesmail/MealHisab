@@ -23,17 +23,17 @@ export function AppNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 pb-2">
+    <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 pb-3 [scrollbar-width:none]">
       {navKeys.map(([key, href]) => {
         const active = pathname === href || pathname.startsWith(`${href}/`)
         return (
           <Link
             key={href}
             href={href}
-            className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition ${
+            className={`whitespace-nowrap rounded-xl border px-3 py-2 text-sm font-medium transition ${
               active
-                ? 'bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-200'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900'
+                ? 'border-[#285337] bg-[#10291a] text-[#39ff88] shadow-[0_0_22px_rgba(57,255,136,.08)]'
+                : 'border-transparent text-[#8da292] hover:border-[#1b2b20] hover:bg-[#0d1510] hover:text-white'
             }`}
           >
             {t(key)}
