@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server'
 
-export async function GET(request: Request) {
+function redirectToOnboarding(request: Request) {
   const url = new URL(request.url)
-  const target = new URL('/onboarding?billing=success', url.origin)
-  return NextResponse.redirect(target)
+  return NextResponse.redirect(new URL('/onboarding?billing=success', url.origin))
+}
+
+export async function GET(request: Request) {
+  return redirectToOnboarding(request)
+}
+
+export async function POST(request: Request) {
+  return redirectToOnboarding(request)
 }
