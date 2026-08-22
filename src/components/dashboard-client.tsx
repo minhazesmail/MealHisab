@@ -68,39 +68,84 @@ export function DashboardClient({
         </div>
       </div>
 
-      <section className="card overflow-x-auto">
+      <section className="card">
         <div className="mb-4">
           <h2 className="font-semibold">{t('dashboard.memberBalances')}</h2>
           <p className="text-sm text-slate-500">{t('dashboard.balanceHint')}</p>
         </div>
-        <table className="w-full min-w-[680px] text-sm">
-          <thead>
-            <tr className="border-b text-left text-slate-500">
-              <th className="py-3">{t('dashboard.member')}</th>
-              <th>{t('dashboard.meals')}</th>
-              <th>{t('dashboard.mealCost')}</th>
-              <th>{t('dashboard.contributed')}</th>
-              <th>{t('dashboard.balance')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="border-b last:border-0">
-                <td className="py-3 font-medium">{r.name}</td>
-                <td>{num(r.meals)}</td>
-                <td>{money(r.mealCost)}</td>
-                <td>{money(r.contribution)}</td>
-                <td
-                  className={
-                    r.balance < 0 ? 'font-semibold text-red-600' : 'font-semibold text-green-700'
-                  }
-                >
-                  {money(r.balance)}
-                </td>
+
+        <div className="hidden md:block">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-left text-slate-500">
+                <th className="py-3">{t('dashboard.member')}</th>
+                <th>{t('dashboard.meals')}</th>
+                <th>{t('dashboard.mealCost')}</th>
+                <th>{t('dashboard.contributed')}</th>
+                <th>{t('dashboard.balance')}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-b last:border-0">
+                  <td className="py-3 font-medium">{r.name}</td>
+                  <td>{num(r.meals)}</td>
+                  <td>{money(r.mealCost)}</td>
+                  <td>{money(r.contribution)}</td>
+                  <td
+                    className={
+                      r.balance < 0 ? 'font-semibold text-red-600' : 'font-semibold text-green-700'
+                    }
+                  >
+                    {money(r.balance)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="space-y-3 md:hidden">
+          {rows.map((r) => {
+            const isNegative = r.balance < 0
+            return (
+              <article
+                key={r.id}
+                className="rounded-2xl border border-line bg-surface-2 p-4 transition hover:border-line-strong"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <h3 className="truncate text-sm font-semibold text-main">{r.name}</h3>
+                    <p className="mt-1 text-xs text-muted">
+                      {t('dashboard.meals')}: {num(r.meals)}
+                    </p>
+                    <div className="mt-3 grid grid-cols-2 gap-x-5 gap-y-1 text-xs">
+                      <span className="text-muted">
+                        {t('dashboard.mealCost')}: <span className="text-main">{money(r.mealCost)}</span>
+                      </span>
+                      <span className="text-muted">
+                        {t('dashboard.contributed')}: <span className="text-main">{money(r.contribution)}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 text-right">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+                      {t('dashboard.balance')}
+                    </p>
+                    <p
+                      className={`mt-1 text-xl font-black tracking-tight ${
+                        isNegative ? 'text-red-400' : 'text-brand-green'
+                      }`}
+                    >
+                      {money(r.balance)}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            )
+          })}
+        </div>
       </section>
 
       <section className="card">
