@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { autoAssignCycleDate, todayInDhaka } from '@/lib/dates'
+import { enforceIpRateLimit, enforceRateLimit } from '@/lib/rate-limit'
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date')
 const mealSchema = z.object({
@@ -72,7 +73,8 @@ export async function createFlat(input: {
       mealPolicy: z.enum(['opt_in', 'opt_out']),
     })
     .parse(input)
-  const { supabase } = await currentUser()
+  const { supabase, user } = await currentUser()
+  await enforceRateLimit('createFlat', user.id)
   const { error } = await supabase.rpc('create_flat', {
     p_name: data.name,
     p_address: data.address || null,
@@ -86,6 +88,7 @@ export async function createFlat(input: {
 
 export async function joinFlat(inviteCode: string) {
   const code = z.string().trim().min(6).max(16).parse(inviteCode)
+  await enforceIpRateLimit('joinFlat')
   const { supabase } = await currentUser()
   const { error } = await supabase.rpc('join_flat', { p_invite_code: code })
   if (error) throw new Error(error.message)
@@ -96,6 +99,7 @@ export async function joinFlat(inviteCode: string) {
 export async function saveMeal(input: unknown) {
   const data = mealSchema.parse(input)
   const { supabase, user } = await currentUser()
+  await enforceRateLimit('saveMeal', user.id)
   const cycle = await assertOpenCycle(supabase, data.flatId, data.cycleId)
   if (data.userId !== user.id) {
     const { data: membership } = await supabase
@@ -135,6 +139,7 @@ export async function saveMeal(input: unknown) {
 export async function saveExpense(input: unknown) {
   const data = expenseSchema.parse(input)
   const { supabase, user } = await currentUser()
+  await enforceRateLimit('saveExpense', user.id)
   const cycle = await assertOpenCycle(supabase, data.flatId, data.cycleId)
   const { data: membership } = await supabase
     .from('flat_members')
@@ -163,6 +168,7 @@ export async function saveExpense(input: unknown) {
 export async function saveContribution(input: unknown) {
   const data = contributionSchema.parse(input)
   const { supabase, user } = await currentUser()
+  await enforceRateLimit('saveContribution', user.id)
   const cycle = await assertOpenCycle(supabase, data.flatId, data.cycleId)
   if (data.userId !== user.id) {
     const { data: membership } = await supabase
@@ -198,6 +204,7 @@ export async function saveContribution(input: unknown) {
 export async function closeCycle(cycleId: string) {
   const id = z.string().uuid().parse(cycleId)
   const { supabase, user } = await currentUser()
+  await enforceRateLimit('closeCycle', user.id)
   const { data: cycle } = await supabase.from('cycles').select('flat_id,status').eq('id', id).maybeSingle()
   if (!cycle) throw new Error('Cycle not found')
   const { data: membership } = await supabase
@@ -225,7 +232,8 @@ export async function closeCycle(cycleId: string) {
 
 export async function leaveFlat(flatId: string) {
   const id = z.string().uuid().parse(flatId)
-  const { supabase } = await currentUser()
+  const { supabase, user } = await currentUser()
+  await enforceRateLimit('leaveFlat', user.id)
   const { error } = await supabase.rpc('leave_flat', { p_flat_id: id })
   if (error) throw new Error(error.message)
   revalidatePath('/settings')
@@ -237,7 +245,8 @@ export async function setCycleClosedDay(input: { cycleId: string; date: string; 
   const data = z
     .object({ cycleId: z.string().uuid(), date: dateSchema, reason: z.string().trim().max(200).optional() })
     .parse(input)
-  const { supabase } = await currentUser()
+  const { supabase, user } = await currentUser()
+  await enforceRateLimit('setCycleClosedDay', user.id)
   const { error } = await supabase.rpc('set_cycle_closed_day', {
     p_cycle_id: data.cycleId,
     p_date: data.date,
@@ -252,7 +261,8 @@ export async function setCycleClosedDay(input: { cycleId: string; date: string; 
 
 export async function removeCycleClosedDay(input: { cycleId: string; date: string }) {
   const data = z.object({ cycleId: z.string().uuid(), date: dateSchema }).parse(input)
-  const { supabase } = await currentUser()
+  const { supabase, user } = await currentUser()
+  await enforceRateLimit('removeCycleClosedDay', user.id)
   const { error } = await supabase.rpc('remove_cycle_closed_day', {
     p_cycle_id: data.cycleId,
     p_date: data.date,
@@ -276,7 +286,8 @@ export async function recordSettlementPayment(input: {
       note: z.string().trim().max(500).optional(),
     })
     .parse(input)
-  const { supabase } = await currentUser()
+  const { supabase, user } = await currentUser()
+  await enforceRateLimit('recordSettlementPayment', user.id)
   const { error } = await supabase.rpc('record_settlement_payment', {
     p_settlement_id: data.settlementId,
     p_amount: Math.round(data.amount * 100) / 100,
@@ -289,7 +300,8 @@ export async function recordSettlementPayment(input: {
 }
 
 export async function markNotificationRead(id: string) {
-  const { supabase } = await currentUser()
+  const { supabase, user } = await currentUser()
+  await enforceRateLimit('markNotificationRead', user.id)
   const parsedId = z.string().uuid().parse(id)
   const { error } = await supabase
     .from('notifications')
