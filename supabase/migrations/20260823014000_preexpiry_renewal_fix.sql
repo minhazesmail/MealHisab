@@ -1,5 +1,6 @@
--- Managers may submit the next ৳99 renewal before expiry.
--- Approval extends an active period by 30 days; an expired/grace plan restarts from now().
+-- Managers may submit the next ৳99 renewal before expiry, during grace,
+-- or later after a prolonged lapse. Approval applies the canonical activation rule:
+-- active period -> +30 days; expired/grace/inactive -> now +30 days.
 create or replace function public.create_manual_manager_payment(
   p_payment_method text,
   p_sender_number text,
@@ -15,28 +16,11 @@ declare
   v_user uuid := auth.uid();
   v_subscription uuid;
   v_payment uuid;
-  v_state text;
 begin
   if v_user is null then raise exception 'not_authenticated'; end if;
   if p_payment_method not in ('bkash','nagad','rocket') then raise exception 'invalid_payment_method'; end if;
   if nullif(trim(p_sender_number), '') is null then raise exception 'sender_number_required'; end if;
   if nullif(trim(p_transaction_id), '') is null then raise exception 'transaction_id_required'; end if;
-
-  v_state := private.subscription_state(v_user);
-
-  -- Do not allow renewal submissions once the account is fully expired and past recovery policy,
-  -- but allow active, grace, and expired-within-recovery submissions.
-  if v_state = 'expired' then
-    if not exists (
-      select 1
-      from public.subscriptions s
-      where s.user_id = v_user
-        and s.plan = 'manager_monthly'
-        and s.current_period_end > now() - interval '30 days'
-    ) then
-      raise exception 'subscription_reactivation_not_available';
-    end if;
-  end if;
 
   insert into public.subscriptions(user_id, plan, status, payment_provider)
   values(v_user, 'manager_monthly', 'inactive', 'manual_bd')
@@ -75,5 +59,5 @@ $$;
 revoke all on function public.create_manual_manager_payment(text,text,text,text) from public;
 grant execute on function public.create_manual_manager_payment(text,text,text,text) to authenticated;
 
--- Manual approval continues to use the canonical activation function so:
--- active period -> +30 days, expired/grace -> now +30 days, and cancellation is cleared.
+-- The admin approval path continues to use private.activate_manager_subscription(),
+-- which extends an active period by 30 days and restarts an expired period from now().
