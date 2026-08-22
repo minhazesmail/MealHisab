@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createFlat, joinFlat } from '@/app/actions'
-import { createManagerCheckoutSession } from '@/app/billing-actions'
 import { createClient } from '@/lib/supabase/client'
 import { LanguageProvider, LanguageToggle, useI18n } from '@/components/language-provider'
 import { InviteSharePanel } from '@/components/invite-share'
@@ -80,7 +79,7 @@ function OnboardingInner() {
       <div className="card border-brand-green/20 bg-surface-2">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-green">Flat Manager</p><p className="mt-1 font-semibold">৳99/month</p><p className="mt-1 text-xs text-muted">Subscribe first to create and operate your own flat. Members join free with an invite code.</p></div>
-          <form action={createManagerCheckoutSession}><button type="submit" className="btn-secondary whitespace-nowrap">Subscribe Manager Plan</button></form>
+          <Link href="/manager/subscribe" className="btn-secondary whitespace-nowrap">Open Manager Plan</Link>
         </div>
       </div>
 
