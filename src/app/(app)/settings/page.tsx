@@ -15,7 +15,7 @@ export default async function SettingsPage() {
   const s=await createClient(); const {data:{user}}=await s.auth.getUser(); if(!user)redirect('/login')
   const {data:m}=await s.from('flat_members').select('flat_id,role').eq('user_id',user.id).eq('status','active').maybeSingle(); if(!m)redirect('/onboarding')
   const {data:flat}=await s.from('flats').select('id,name,invite_code,meal_policy,allow_partial_settlement_payments,allow_settlement_overpayments,guest_meal_policy,guest_free_limit,guest_approval_required,audit_visibility').eq('id',m.flat_id).maybeSingle(); if(!flat)return <div className="card">Flat not found.</div>
-  const {data:subscription}=await s.from('manager_subscriptions').select('status,current_period_end').eq('user_id',user.id).maybeSingle()
+  const {data:subscription}=await s.from('subscriptions').select('status,current_period_end').eq('user_id',user.id).maybeSingle()
   const {data:inviteCodes}=await s.from('invite_codes').select('id,code,created_at,revoked_at,expires_at,used_at').eq('flat_id',m.flat_id).order('created_at',{ascending:false}).limit(20)
   const {data:members}=await s.from('flat_members').select('user_id,role,status,joined_at,profiles(full_name)').eq('flat_id',m.flat_id).order('joined_at',{ascending:true})
   const {data:cycle}=await s.from('cycles').select('id,start_date,end_date,status,cycle_type,festival_name,festival_start_date,festival_end_date,meals_paused').eq('flat_id',m.flat_id).eq('status','open').order('start_date',{ascending:false}).limit(1).maybeSingle()
