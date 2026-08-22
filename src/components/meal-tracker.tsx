@@ -79,8 +79,8 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-slate-500">
-        Date: <span className="font-semibold text-slate-700">{effectiveDate}</span>
+      <p className="text-xs text-muted">
+        Date: <span className="font-semibold text-main">{effectiveDate}</span>
       </p>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="card">
@@ -90,6 +90,7 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
               type="button"
               className={current('lunch') > 0 ? 'btn-primary' : 'btn-secondary'}
               disabled={buttonBusy('lunch', 1)}
+              aria-pressed={current('lunch') > 0}
               onClick={() => setMeal('lunch', 1, `Logged ${t('meals.lunch')}`)}
             >
               {renderLoader('lunch', 1)}
@@ -99,15 +100,14 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
               type="button"
               className={current('lunch') === 0 ? 'btn-primary' : 'btn-secondary'}
               disabled={buttonBusy('lunch', 0)}
+              aria-pressed={current('lunch') === 0}
               onClick={() => setMeal('lunch', 0, `Skipped ${t('meals.lunch').toLowerCase()}`)}
             >
               {renderLoader('lunch', 0)}
               {t('meals.skip')}
             </button>
           </div>
-          <p className="mt-3 text-sm text-slate-500">
-            {t('meals.currentCount')}: {num(current('lunch'))}
-          </p>
+          <p className="mt-3 text-sm text-muted">{t('meals.currentCount')}: {num(current('lunch'))}</p>
         </div>
 
         <div className="card">
@@ -117,6 +117,7 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
               type="button"
               className={current('dinner') > 0 ? 'btn-primary' : 'btn-secondary'}
               disabled={buttonBusy('dinner', 1)}
+              aria-pressed={current('dinner') > 0}
               onClick={() => setMeal('dinner', 1, `Logged ${t('meals.dinner')}`)}
             >
               {renderLoader('dinner', 1)}
@@ -126,15 +127,14 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
               type="button"
               className={current('dinner') === 0 ? 'btn-primary' : 'btn-secondary'}
               disabled={buttonBusy('dinner', 0)}
+              aria-pressed={current('dinner') === 0}
               onClick={() => setMeal('dinner', 0, `Skipped ${t('meals.dinner').toLowerCase()}`)}
             >
               {renderLoader('dinner', 0)}
               {t('meals.skip')}
             </button>
           </div>
-          <p className="mt-3 text-sm text-slate-500">
-            {t('meals.currentCount')}: {num(current('dinner'))}
-          </p>
+          <p className="mt-3 text-sm text-muted">{t('meals.currentCount')}: {num(current('dinner'))}</p>
         </div>
 
         <div className="card sm:col-span-2">
@@ -144,6 +144,7 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
               type="button"
               className="btn-secondary"
               disabled={buttonBusy('extra', current('extra') - 1) || current('extra') === 0}
+              aria-label="Remove extra meal"
               onClick={() => setMeal('extra', current('extra') - 1, 'Updated extra meals')}
             >
               {renderLoader('extra', current('extra') - 1)}
@@ -154,20 +155,17 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
               type="button"
               className="btn-primary"
               disabled={buttonBusy('extra', current('extra') + 1) || current('extra') >= 100}
+              aria-label="Add extra meal"
               onClick={() => setMeal('extra', current('extra') + 1, 'Updated extra meals')}
             >
               {renderLoader('extra', current('extra') + 1)}
               +
             </button>
-            <span className="text-sm text-slate-500">{t('meals.guests')}</span>
+            <span className="text-sm text-muted">{t('meals.guests')}</span>
           </div>
         </div>
 
-        {error && (
-          <p className="sm:col-span-2 text-sm text-danger" role="alert">
-            {error}
-          </p>
-        )}
+        {error && <p className="sm:col-span-2 text-sm text-danger" role="alert">{error}</p>}
       </div>
     </div>
   )
