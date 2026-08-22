@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { ContributionForm } from '@/components/forms'
 import { autoAssignCycleDate } from '@/lib/dates'
+import { fetchAllRows } from '@/lib/supabase/pagination'
+import { createClient } from '@/lib/supabase/server'
 
 type ContributionMember = { userId: string; name: string }
 type ContributionRow = {
@@ -41,13 +42,20 @@ export default async function ContributionsPage() {
 
   const assignedDate = autoAssignCycleDate(cycle.start_date, cycle.end_date)
 
-  const { data: rows, error: rowsError } = await s
-    .from('contributions')
-    .select('id,user_id,amount,note,date,created_at')
-    .eq('cycle_id', cycle.id)
-    .order('date', { ascending: false })
-    .order('created_at', { ascending: false })
-  if (rowsError) return <div className="card text-sm text-red-600">Could not load contributions.</div>
+  let rows: ContributionRow[]
+  try {
+    rows = await fetchAllRows<ContributionRow>(
+      s
+        .from('contributions')
+        .select('id,user_id,amount,note,date,created_at')
+        .eq('cycle_id', cycle.id)
+        .order('date', { ascending: false })
+        .order('created_at', { ascending: false }),
+    )
+  } catch (error) {
+    console.error('[MealHisab][contributions-pagination]', error)
+    return <div className="card text-sm text-red-600">Could not load contributions.</div>
+  }
 
   const { data: flatMembers, error: membersError } = await s
     .from('flat_members')
@@ -63,7 +71,7 @@ export default async function ContributionsPage() {
   })
   const canRecordForOthers = membership.role === 'admin' || membership.role === 'manager'
   const formMembers = canRecordForOthers ? members : []
-  const typedRows = (rows ?? []) as unknown as ContributionRow[]
+  const typedRows = rows
   const total = typedRows.reduce((sum, row) => sum + Number(row.amount), 0)
   const ownTotal = typedRows
     .filter((row) => row.user_id === user.id)
