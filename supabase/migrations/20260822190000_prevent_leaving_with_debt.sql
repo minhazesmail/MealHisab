@@ -30,7 +30,8 @@ as $$
   member_days as (
     select m.user_id,
            gs.d::date as service_date,
-           c.meal_policy
+           c.meal_policy,
+           m.cycle_id
       from member m
       join current_cycle c on c.id = m.cycle_id
       cross join generate_series(
@@ -46,26 +47,31 @@ as $$
             and cd.date = gs.d::date
        )
   ),
-  member_meals as (
+  member_daily_meals as (
     select md.user_id,
-           coalesce(sum(
-             coalesce(max(ml.count) filter (where ml.meal_type = 'lunch'),
-               case when md.meal_policy = 'opt_out' then 1 else 0 end)
-             + coalesce(max(ml.count) filter (where ml.meal_type = 'dinner'),
-               case when md.meal_policy = 'opt_out' then 1 else 0 end)
-             + coalesce(max(ml.count) filter (where ml.meal_type = 'extra'), 0)
-           ), 0)::numeric as meals
+           md.service_date,
+           coalesce(max(ml.count) filter (where ml.meal_type = 'lunch'),
+             case when md.meal_policy = 'opt_out' then 1 else 0 end)
+           + coalesce(max(ml.count) filter (where ml.meal_type = 'dinner'),
+             case when md.meal_policy = 'opt_out' then 1 else 0 end)
+           + coalesce(max(ml.count) filter (where ml.meal_type = 'extra'), 0) as meals
       from member_days md
       left join public.meal_logs ml
-        on ml.cycle_id = (select id from current_cycle)
+        on ml.cycle_id = md.cycle_id
        and ml.user_id = md.user_id
        and ml.date = md.service_date
-     group by md.user_id
+     group by md.user_id, md.service_date, md.meal_policy
+  ),
+  member_meals as (
+    select user_id, coalesce(sum(meals), 0)::numeric as meals
+      from member_daily_meals
+     group by user_id
   ),
   all_cycle_days as (
     select cm.user_id,
            gs.d::date as service_date,
-           c.meal_policy
+           c.meal_policy,
+           c.id as cycle_id
       from public.cycle_members cm
       join current_cycle c on c.id = cm.cycle_id
       cross join generate_series(
@@ -81,28 +87,29 @@ as $$
             and cd.date = gs.d::date
        )
   ),
-  all_meals as (
+  all_daily_meals as (
     select ad.user_id,
-           coalesce(sum(
-             coalesce(max(ml.count) filter (where ml.meal_type = 'lunch'),
-               case when ad.meal_policy = 'opt_out' then 1 else 0 end)
-             + coalesce(max(ml.count) filter (where ml.meal_type = 'dinner'),
-               case when ad.meal_policy = 'opt_out' then 1 else 0 end)
-             + coalesce(max(ml.count) filter (where ml.meal_type = 'extra'), 0)
-           ), 0)::numeric as meals
+           ad.service_date,
+           coalesce(max(ml.count) filter (where ml.meal_type = 'lunch'),
+             case when ad.meal_policy = 'opt_out' then 1 else 0 end)
+           + coalesce(max(ml.count) filter (where ml.meal_type = 'dinner'),
+             case when ad.meal_policy = 'opt_out' then 1 else 0 end)
+           + coalesce(max(ml.count) filter (where ml.meal_type = 'extra'), 0) as meals
       from all_cycle_days ad
       left join public.meal_logs ml
-        on ml.cycle_id = (select id from current_cycle)
+        on ml.cycle_id = ad.cycle_id
        and ml.user_id = ad.user_id
        and ml.date = ad.service_date
-     group by ad.user_id
+     group by ad.user_id, ad.service_date, ad.meal_policy
   ),
   totals as (
-    select coalesce(sum(am.meals), 0) as total_meals,
-           coalesce(sum(e.amount), 0)::numeric(14,2) as total_cost
-      from all_meals am
-      full join public.expenses e
-        on e.cycle_id = (select id from current_cycle)
+    select
+      coalesce((select sum(meals) from all_daily_meals), 0)::numeric as total_meals,
+      coalesce((
+        select sum(e.amount)
+          from public.expenses e
+         where e.cycle_id = (select id from current_cycle)
+      ), 0)::numeric(14,2) as total_cost
   ),
   user_totals as (
     select
