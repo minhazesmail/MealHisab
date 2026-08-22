@@ -69,3 +69,18 @@ body {
 }
 .input::placeholder { color: rgb(var(--text-muted)); }
 .input:focus { border-color: rgb(var(--brand-green-2)); box-shadow: 0 0 0 3px rgba(57,255,136,.10); }
+
+@media print {
+  @page { size: A4 portrait; margin: 14mm; }
+  html, body { background: #fff !important; color: #111827 !important; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .statement-shell, .statement-page { background: #fff !important; color: #111827 !important; }
+  .statement-shell { min-height: auto !important; }
+  .statement-page { max-width: none !important; }
+  .statement-page table { page-break-inside: auto; }
+  .statement-page tr { break-inside: avoid; page-break-inside: avoid; }
+  .statement-page h1, .statement-page h2 { color: #111827 !important; }
+  .statement-page .text-slate-500 { color: #64748b !important; }
+  .statement-page .text-emerald-700 { color: #047857 !important; }
+  .statement-page .text-red-700 { color: #b91c1c !important; }
+}
