@@ -26,11 +26,15 @@ export function extractDbError(error: unknown, context: string): Error {
     hint: dbError?.hint ?? undefined,
   })
 
+  const outstandingBalanceMatch = /^member_has_outstanding_balance:([0-9]+(?:\.[0-9]{1,2})?)$/i.exec(rawMessage.trim())
+
   const friendlyMessage =
-    code === '23505' && /meal_logs.*flat_id_user_id_date_meal_type_key/i.test(`${rawMessage} ${rawDetails}`)
-      ? 'You have already recorded a meal for this time.'
-      : FRIENDLY_DB_MESSAGES[code] ??
-        'Something went wrong while saving your changes. Please try again.'
+    outstandingBalanceMatch
+      ? `You must settle your outstanding balance of ৳${Number(outstandingBalanceMatch[1]).toFixed(2)} before leaving the mess.`
+      : code === '23505' && /meal_logs.*flat_id_user_id_date_meal_type_key/i.test(`${rawMessage} ${rawDetails}`)
+        ? 'You have already recorded a meal for this time.'
+        : FRIENDLY_DB_MESSAGES[code] ??
+          'Something went wrong while saving your changes. Please try again.'
 
   return new Error(friendlyMessage)
 }
