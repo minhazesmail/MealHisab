@@ -1,7 +1,7 @@
 const PAGE_SIZE = 1000
 
 type RangeQuery<T> = {
-  range: (from: number, to: number) => Promise<{ data: T[] | null; error: unknown }>
+  range: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>
 }
 
 export async function fetchAllRows<T>(query: RangeQuery<T>): Promise<T[]> {
