@@ -6,7 +6,6 @@ type DatabaseError = {
 }
 
 const FRIENDLY_DB_MESSAGES: Record<string, string> = {
-  '23505': 'This record already exists. Please check the existing entry and try again.',
   '23503': 'This action refers to data that no longer exists. Please refresh and try again.',
   '23514': 'Some of the values are not allowed. Please review your input and try again.',
   '22P02': 'Some of the values are invalid. Please review your input and try again.',
@@ -17,6 +16,7 @@ export function extractDbError(error: unknown, context: string): Error {
   const dbError = isDatabaseError(error) ? error : undefined
   const code = dbError?.code ?? 'UNKNOWN'
   const rawMessage = dbError?.message ?? (error instanceof Error ? error.message : String(error))
+  const rawDetails = dbError?.details ?? ''
 
   console.error('[MealHisab][database-error]', {
     context,
@@ -26,7 +26,13 @@ export function extractDbError(error: unknown, context: string): Error {
     hint: dbError?.hint ?? undefined,
   })
 
-  return new Error(FRIENDLY_DB_MESSAGES[code] ?? 'Something went wrong while saving your changes. Please try again.')
+  const friendlyMessage =
+    code === '23505' && /meal_logs.*flat_id_user_id_date_meal_type_key/i.test(`${rawMessage} ${rawDetails}`)
+      ? 'You have already recorded a meal for this time.'
+      : FRIENDLY_DB_MESSAGES[code] ??
+        'Something went wrong while saving your changes. Please try again.'
+
+  return new Error(friendlyMessage)
 }
 
 function isDatabaseError(error: unknown): error is DatabaseError {
