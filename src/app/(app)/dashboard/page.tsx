@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { buildDashboardMembers, type DashboardMember } from '@/lib/dashboard'
+import { createClient } from '@/lib/supabase/server'
+import { fetchAllRows } from '@/lib/supabase/pagination'
 import { DashboardClient } from '@/components/dashboard-client'
 
 type CycleMemberRow = {
@@ -20,6 +21,7 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
   const { data: membership, error: membershipError } = await supabase
     .from('flat_members')
     .select('flat_id,role')
@@ -48,54 +50,67 @@ export default async function DashboardPage() {
   if (cycleError) return <div className="card text-sm text-red-600">Could not load the current cycle.</div>
   if (!cycle) return <div className="card">No open cycle.</div>
 
-  const [{ data: members }, { data: logs }, { data: expenses }, { data: contributions }] =
-    await Promise.all([
-      supabase
-        .from('cycle_members')
-        .select('user_id,opening_balance,active_from,active_to,profiles(full_name)')
-        .eq('cycle_id', cycle.id),
-      supabase.from('meal_logs').select('user_id,date,meal_type,count').eq('cycle_id', cycle.id),
-      supabase.from('expenses').select('amount,category').eq('cycle_id', cycle.id),
-      supabase.from('contributions').select('user_id,amount').eq('cycle_id', cycle.id),
+  try {
+    const [members, logs, expenses, contributions] = await Promise.all([
+      fetchAllRows<CycleMemberRow>(
+        supabase
+          .from('cycle_members')
+          .select('user_id,opening_balance,active_from,active_to,profiles(full_name)')
+          .eq('cycle_id', cycle.id),
+      ),
+      fetchAllRows<MealRow>(
+        supabase.from('meal_logs').select('user_id,date,meal_type,count').eq('cycle_id', cycle.id),
+      ),
+      fetchAllRows<ExpenseRow>(
+        supabase.from('expenses').select('amount,category').eq('cycle_id', cycle.id),
+      ),
+      fetchAllRows<ContributionRow>(
+        supabase.from('contributions').select('user_id,amount').eq('cycle_id', cycle.id),
+      ),
     ])
-  const typedMembers = (members ?? []) as unknown as CycleMemberRow[]
-  const typedLogs = (logs ?? []) as unknown as MealRow[]
-  const typedExpenses = (expenses ?? []) as unknown as ExpenseRow[]
-  const typedContributions = (contributions ?? []) as unknown as ContributionRow[]
-  const foodCost = typedExpenses
-    .filter((e) => e.category === 'grocery')
-    .reduce((s, e) => s + Number(e.amount), 0)
-  const totalShared = typedExpenses.reduce((s, e) => s + Number(e.amount), 0)
-  const rows: DashboardMember[] = buildDashboardMembers({
-    flat: { meal_policy: flat.meal_policy },
-    cycle: { start_date: cycle.start_date, end_date: cycle.end_date },
-    members: typedMembers,
-    logs: typedLogs,
-    contributions: typedContributions,
-    foodCost,
-  })
-  const totalMeals = rows.reduce((s, r) => s + r.meals, 0)
-  const rate = totalMeals ? foodCost / totalMeals : 0
 
-  return (
-    <DashboardClient
-      flatName={flat.name}
-      inviteCode={flat.invite_code}
-      mealPolicy={flat.meal_policy}
-      cycleStart={cycle.start_date}
-      cycleEnd={cycle.end_date}
-      totalMeals={totalMeals}
-      foodCost={foodCost}
-      rate={rate}
-      totalShared={totalShared}
-      rows={rows.map((r) => ({
-        id: r.id,
-        name: r.name,
-        meals: r.meals,
-        mealCost: r.mealCost,
-        contribution: r.contribution,
-        balance: r.balance,
-      }))}
-    />
-  )
+    const typedMembers = members
+    const typedLogs = logs
+    const typedExpenses = expenses
+    const typedContributions = contributions
+    const foodCost = typedExpenses
+      .filter((e) => e.category === 'grocery')
+      .reduce((s, e) => s + Number(e.amount), 0)
+    const totalShared = typedExpenses.reduce((s, e) => s + Number(e.amount), 0)
+    const rows: DashboardMember[] = buildDashboardMembers({
+      flat: { meal_policy: flat.meal_policy },
+      cycle: { start_date: cycle.start_date, end_date: cycle.end_date },
+      members: typedMembers,
+      logs: typedLogs,
+      contributions: typedContributions,
+      foodCost,
+    })
+    const totalMeals = rows.reduce((s, r) => s + r.meals, 0)
+    const rate = totalMeals ? foodCost / totalMeals : 0
+
+    return (
+      <DashboardClient
+        flatName={flat.name}
+        inviteCode={flat.invite_code}
+        mealPolicy={flat.meal_policy}
+        cycleStart={cycle.start_date}
+        cycleEnd={cycle.end_date}
+        totalMeals={totalMeals}
+        foodCost={foodCost}
+        rate={rate}
+        totalShared={totalShared}
+        rows={rows.map((r) => ({
+          id: r.id,
+          name: r.name,
+          meals: r.meals,
+          mealCost: r.mealCost,
+          contribution: r.contribution,
+          balance: r.balance,
+        }))}
+      />
+    )
+  } catch (error) {
+    console.error('[MealHisab][dashboard-pagination]', error)
+    return <div className="card text-sm text-red-600">Could not load the complete dashboard data. Please try again.</div>
+  }
 }
