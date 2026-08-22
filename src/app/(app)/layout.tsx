@@ -13,33 +13,29 @@ export default async function AppLayout({ children }: Readonly<{ children: React
   if (!claimsData?.claims?.sub) redirect('/login')
 
   const userId = String(claimsData.claims.sub)
-  const { data: membership } = await supabase
-    .from('flat_members')
-    .select('role,status')
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .in('role', ['admin', 'manager'])
-    .maybeSingle()
-
-  let graceDays = 0
+  const { data: membership } = await supabase.from('flat_members').select('role,status').eq('user_id', userId).eq('status', 'active').in('role', ['admin', 'manager']).maybeSingle()
+  let banner: React.ReactNode = null
   if (membership) {
-    const { data: subscription } = await supabase
-      .from('subscriptions')
-      .select('status,current_period_end')
-      .eq('user_id', userId)
-      .maybeSingle()
-    if (subscription?.current_period_end && ['active', 'trialing', 'past_due'].includes(subscription.status)) {
-      const end = new Date(subscription.current_period_end).getTime()
-      const now = Date.now()
-      if (end <= now && end > now - 7 * 24 * 60 * 60 * 1000) {
-        graceDays = Math.max(1, Math.ceil((end + 7 * 24 * 60 * 60 * 1000 - now) / (24 * 60 * 60 * 1000)))
-      }
+    const { data: subscription } = await supabase.from('subscriptions').select('status,current_period_end').eq('user_id', userId).eq('plan', 'manager_monthly').maybeSingle()
+    const end = subscription?.current_period_end ? new Date(subscription.current_period_end) : null
+    const now = new Date()
+    let state: 'expiring' | 'grace' | 'locked' | 'hidden' = 'hidden'
+    let daysRemaining = 0
+    if (end && ['active', 'trialing'].includes(subscription?.status ?? '') && end > now) {
+      const days = Math.ceil((end.getTime() - now.getTime()) / 86400000)
+      if (days <= 7) state = 'expiring'
+    } else if (end && ['active', 'trialing', 'past_due'].includes(subscription?.status ?? '') && end <= now && end > new Date(now.getTime() - 7 * 86400000)) {
+      state = 'grace'
+      daysRemaining = Math.max(1, Math.ceil((end.getTime() + 7 * 86400000 - now.getTime()) / 86400000))
+    } else {
+      state = 'locked'
     }
+    banner = <SubscriptionGraceBanner state={state} daysRemaining={daysRemaining} periodEnd={subscription?.current_period_end ?? null} />
   }
 
   return (
     <div className="min-h-screen bg-canvas text-main">
-      <SubscriptionGraceBanner daysRemaining={graceDays} />
+      {banner}
       <div className="flex min-h-screen">
         <AppNav />
         <div className="min-w-0 flex-1">
@@ -47,17 +43,12 @@ export default async function AppLayout({ children }: Readonly<{ children: React
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5">
               <Link href="/dashboard" className="group flex items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-surface-2">
                 <span className="rounded-xl border border-line-strong bg-surface-3 p-2 text-brand-green shadow-glow"><Utensils size={18} /></span>
-                <span>
-                  <span className="block text-sm font-black tracking-tight text-main">MealHisab</span>
-                  <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">BD</span>
-                </span>
+                <span><span className="block text-sm font-black tracking-tight text-main">MealHisab</span><span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">BD</span></span>
               </Link>
               <div className="flex items-center gap-2">
                 <NotificationBell />
                 <LanguageToggle />
-                <form action={async () => { 'use server'; const s = await createClient(); await s.auth.signOut(); redirect('/login') }}>
-                  <SignOutButton />
-                </form>
+                <form action={async () => { 'use server'; const s = await createClient(); await s.auth.signOut(); redirect('/login') }}><SignOutButton /></form>
               </div>
             </div>
           </header>
