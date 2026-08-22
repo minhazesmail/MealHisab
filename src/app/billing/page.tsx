@@ -30,7 +30,7 @@ export default async function BillingPage() {
     <div>
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-green">Billing</p>
       <h1 className="mt-2 text-3xl font-black">Manager Plan</h1>
-      <p className="mt-2 text-sm text-muted">৳99/month • one flat • up to 10 invite codes per month.</p>
+      <p className="mt-2 text-sm text-muted">৳99/month • one flat • up to 10 invite codes per month • members join free.</p>
     </div>
 
     {cancelScheduled && paidUntil && active && <section className="card border-amber-400/30 bg-amber-400/10">
@@ -39,8 +39,8 @@ export default async function BillingPage() {
     </section>}
 
     {inGrace && <section className="card border-amber-400/30 bg-amber-400/10">
-      <p className="text-sm font-semibold text-amber-200">Your subscription has expired.</p>
-      <p className="mt-1 text-sm text-muted">You are in the 7-day grace period. Renew now to keep the flat fully active.</p>
+      <p className="text-sm font-semibold text-amber-200">Your Manager Plan has expired.</p>
+      <p className="mt-1 text-sm text-muted">Renew now to keep your flat active during the 7-day grace period.</p>
     </section>}
 
     <ManualPaymentCard
