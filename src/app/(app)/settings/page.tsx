@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { CloseCycleButton, LeaveFlatButton, MessClosedForm, RemoveClosedDayButton } from '@/components/forms'
 import { SettingsClient } from '@/components/settings-client'
+import { NotificationSettings } from '@/components/notification-settings'
 
 type MemberRow = {
   user_id: string
@@ -33,7 +34,7 @@ export default async function SettingsPage() {
     .select('id,name,invite_code,meal_policy')
     .eq('id', m.flat_id)
     .maybeSingle()
-  if (flatError) return <div className="card text-sm text-red-600">Could not load flat settings.</div>
+  if (flatError) return <div className="card text-sm text-danger">Could not load flat settings.</div>
   if (!flat) return <div className="card">Flat not found.</div>
 
   const { data: members } = await s
@@ -61,35 +62,32 @@ export default async function SettingsPage() {
   const canManage = m.role === 'admin' || m.role === 'manager'
 
   return (
-    <SettingsClient
-      flat={{
-        name: flat.name,
-        inviteCode: flat.invite_code,
-        mealPolicy: flat.meal_policy as 'opt_out' | 'opt_in',
-      }}
-      cycle={
-        cycle
-          ? { id: cycle.id, startDate: cycle.start_date, endDate: cycle.end_date }
-          : null
-      }
-      members={typedMembers.map((x) => ({
-        userId: x.user_id,
-        name: x.profiles?.full_name ?? 'Member',
-        role: x.role,
-        status: x.status,
-        joinedAt: x.joined_at,
-      }))}
-      closedDays={typedClosedDays}
-      canManage={canManage}
-      flatId={m.flat_id}
-      leaveButton={<LeaveFlatButton flatId={m.flat_id} />}
-      closeButton={cycle ? <CloseCycleButton cycleId={cycle.id} /> : null}
-      messClosedForm={cycle ? <MessClosedForm cycleId={cycle.id} /> : null}
-      removeButtons={typedClosedDays.map((day) =>
-        cycle ? (
-          <RemoveClosedDayButton key={day.date} cycleId={cycle.id} date={day.date} />
-        ) : null,
-      )}
-    />
+    <div className="space-y-6">
+      <SettingsClient
+        flat={{
+          name: flat.name,
+          inviteCode: flat.invite_code,
+          mealPolicy: flat.meal_policy as 'opt_out' | 'opt_in',
+        }}
+        cycle={cycle ? { id: cycle.id, startDate: cycle.start_date, endDate: cycle.end_date } : null}
+        members={typedMembers.map((x) => ({
+          userId: x.user_id,
+          name: x.profiles?.full_name ?? 'Member',
+          role: x.role,
+          status: x.status,
+          joinedAt: x.joined_at,
+        }))}
+        closedDays={typedClosedDays}
+        canManage={canManage}
+        flatId={m.flat_id}
+        leaveButton={<LeaveFlatButton flatId={m.flat_id} />}
+        closeButton={cycle ? <CloseCycleButton cycleId={cycle.id} /> : null}
+        messClosedForm={cycle ? <MessClosedForm cycleId={cycle.id} /> : null}
+        removeButtons={typedClosedDays.map((day) =>
+          cycle ? <RemoveClosedDayButton key={day.date} cycleId={cycle.id} date={day.date} /> : null,
+        )}
+      />
+      <NotificationSettings />
+    </div>
   )
 }
