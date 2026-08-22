@@ -38,6 +38,11 @@ body {
 ::-webkit-scrollbar-thumb { border: 2px solid rgb(var(--canvas)); border-radius: 999px; background: #1c4429; }
 ::-webkit-scrollbar-thumb:hover { background: #2b6a40; }
 
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
 .card {
   @apply rounded-2xl bg-surface p-5 shadow-soft;
   border: 1px solid rgb(var(--line));
