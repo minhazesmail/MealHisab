@@ -19,10 +19,9 @@ type Props = {
 
 export default function MealTracker({ flatId, cycleId, userId, date, policy, initial }: Props) {
   const { t, num } = useI18n()
+  const [, startTransition] = useTransition()
   const [counts, setCounts] = useState<Record<string, number>>(initial)
-  const [pendingType, setPendingType] = useState<MealType | null>(null)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
-  const [startTransition] = useTransition()
   const [error, setError] = useState('')
   const [effectiveDate, setEffectiveDate] = useState(date)
 
@@ -41,7 +40,6 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
     const previous = current(type)
     const requestKey = `${type}:${next}`
     setError('')
-    setPendingType(type)
     setPendingAction(requestKey)
     setCounts((state) => ({ ...state, [type]: next }))
 
@@ -57,23 +55,20 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
         })
         const savedDate = result?.date ?? effectiveDate
         setEffectiveDate(savedDate)
-        toast.success(
-          `${actionKey} for ${formatConfirmationDate(savedDate)}`,
-        )
+        toast.success(`${actionKey} for ${formatConfirmationDate(savedDate)}`)
       } catch (err) {
         setCounts((state) => ({ ...state, [type]: previous }))
         const message = err instanceof Error ? err.message : t('common.error')
         setError(message)
         toast.error(message)
       } finally {
-        setPendingType(null)
         setPendingAction(null)
       }
     })
   }
 
   const buttonBusy = (type: MealType, count: number) =>
-    pendingType === type && pendingAction === `${type}:${count}`
+    pendingAction === `${type}:${count}`
 
   const renderLoader = (type: MealType, count: number) =>
     buttonBusy(type, count) ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : null
@@ -90,7 +85,7 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
             <button
               type="button"
               className={current('lunch') > 0 ? 'btn-primary' : 'btn-secondary'}
-              disabled={pendingType !== null}
+              disabled={pendingAction !== null}
               onClick={() => setMeal('lunch', 1, `Logged ${t('meals.lunch')}`)}
             >
               {renderLoader('lunch', 1)}
@@ -99,8 +94,8 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
             <button
               type="button"
               className={current('lunch') === 0 ? 'btn-primary' : 'btn-secondary'}
-              disabled={pendingType !== null}
-              onClick={() => setMeal('lunch', 0, `Logged ${t('meals.skip')} ${t('meals.lunch').toLowerCase()}`)}
+              disabled={pendingAction !== null}
+              onClick={() => setMeal('lunch', 0, `Skipped ${t('meals.lunch').toLowerCase()}`)}
             >
               {renderLoader('lunch', 0)}
               {t('meals.skip')}
@@ -117,7 +112,7 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
             <button
               type="button"
               className={current('dinner') > 0 ? 'btn-primary' : 'btn-secondary'}
-              disabled={pendingType !== null}
+              disabled={pendingAction !== null}
               onClick={() => setMeal('dinner', 1, `Logged ${t('meals.dinner')}`)}
             >
               {renderLoader('dinner', 1)}
@@ -126,8 +121,8 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
             <button
               type="button"
               className={current('dinner') === 0 ? 'btn-primary' : 'btn-secondary'}
-              disabled={pendingType !== null}
-              onClick={() => setMeal('dinner', 0, `Logged ${t('meals.skip')} ${t('meals.dinner').toLowerCase()}`)}
+              disabled={pendingAction !== null}
+              onClick={() => setMeal('dinner', 0, `Skipped ${t('meals.dinner').toLowerCase()}`)}
             >
               {renderLoader('dinner', 0)}
               {t('meals.skip')}
@@ -144,7 +139,7 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
             <button
               type="button"
               className="btn-secondary"
-              disabled={pendingType !== null || current('extra') === 0}
+              disabled={pendingAction !== null || current('extra') === 0}
               onClick={() => setMeal('extra', current('extra') - 1, 'Updated extra meals')}
             >
               {renderLoader('extra', current('extra') - 1)}
@@ -154,7 +149,7 @@ export default function MealTracker({ flatId, cycleId, userId, date, policy, ini
             <button
               type="button"
               className="btn-primary"
-              disabled={pendingType !== null || current('extra') >= 100}
+              disabled={pendingAction !== null || current('extra') >= 100}
               onClick={() => setMeal('extra', current('extra') + 1, 'Updated extra meals')}
             >
               {renderLoader('extra', current('extra') + 1)}
