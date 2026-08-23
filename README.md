@@ -4,7 +4,9 @@
 
 MealHisab replaces notebooks, spreadsheets, and WhatsApp math with one calm ledger for meals, groceries, contributions, and end-of-month balances.
 
-**Live app:** [meal-hisab-sigma.vercel.app](https://meal-hisab-sigma.vercel.app)
+**Production deployment trigger refreshed — 2026-08-23.**
+
+**Live app:** [meal-hisab-hemiln.vercel.app](https://meal-hisab-hemiln.vercel.app)
 
 ---
 
@@ -37,39 +39,14 @@ We optimise for trust, clarity, and the way Bangladeshi messes actually work —
 | **Expenses** | Grocery, cook salary, gas, other — all in settlement cost |
 | **Contributions** | Record deposits; **date auto-assigned** the same way as meals; balances update live |
 | **Settlement** | Immutable cycle snapshots, opening/closing balances, residual rounding reconciliation |
-| **Invites** | Shareable link (`/join/CODE`) + short code; copy or native share (WhatsApp-friendly) |
+| **Invites** | Shareable invite flow + short code; copy or native share (WhatsApp-friendly) |
 | **Holidays** | Mark mess-closed days so opt-out meals don’t create phantom charges |
 | **Roles** | Manager/admin RBAC for expenses, cycle close, closed days |
-| **Language** | English + বাংলা UI (landing → login → app); BDT formatting with optional Bangla digits |
-| **Privacy** | Flat-level tenancy, Supabase Auth (phone/email OTP), RLS |
+| **Billing** | ৳99/month Manager Plan with manual bKash, Nagad, and Rocket payment verification |
+| **Language** | English + বাংলা UI; BDT formatting with optional Bangla digits |
+| **Privacy** | Flat-level tenancy, Supabase Auth (email OTP by default, optional phone OTP), RLS |
 
 Interactive **demo** (sample data only, no account): `/demo` — includes calendar, auto-dates, and language toggle.
-
----
-
-## Roadmap
-
-### Near term
-- [x] Shareable invite links + copy/share from settings & post-create
-- [x] Full EN / বাংলা UI toggle with Bangla number formatting
-- [x] Meal calendar + automatic date assignment for meals & contributions
-- [x] Product-focused README and vision
-- [ ] Deeper Bangla coverage on every form/label (ongoing)
-- [ ] PDF / Excel export of cycle settlement for the monthly meeting
-- [ ] Push or WhatsApp-friendly balance reminders
-
-### Next
-- [ ] Freemium limits + paid plans (extra history, multi-flat, exports)
-- [ ] PWA install + offline-friendly meal logging
-- [ ] Guest meal rules and cook-salary presets
-- [ ] Public “how settlements work” explainer for trust
-
-### Later
-- [ ] Android companion for daily meal entry
-- [ ] Multi-flat manager view
-- [ ] SMS digest for members without smartphones
-
-Feedback and issues welcome on GitHub.
 
 ---
 
@@ -80,7 +57,8 @@ Feedback and issues welcome on GitHub.
 - Database-enforced tenancy/RLS and transactional cycle closing
 - Policy-aware implicit meals; immutable settlement snapshots
 - Cents-precision accounting with cycle-level rounding reconciliation
-- Departure proration, mess-closed/holiday days, manager RBAC
+- Departure proration, vacation freeze mode, mess-closed/holiday days, manager RBAC
+- Manager subscription lifecycle with 7-day grace and read-only recovery
 - English/Bangla-ready UI with BDT formatting
 - Dates for meals/contributions use **Asia/Dhaka** and clamp into the open cycle
 
@@ -98,29 +76,18 @@ Environment variables:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `NEXT_PUBLIC_APP_URL` — used for invite links (e.g. `https://meal-hisab-sigma.vercel.app`)
+- `NEXT_PUBLIC_APP_URL`
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only; never expose as `NEXT_PUBLIC_*`
 
 ### Supabase migrations
 
-Apply every file in `supabase/migrations/` in filename order. Production project: `mealhisab-bd` (`ap-south-1`).
-
-**Required for contributions auto-date:** run `20260819110000_contribution_date.sql` if not already applied.
-
-Verify with:
-
-```bash
-# In Supabase SQL Editor, paste:
-# supabase/scripts/verify_contribution_date.sql
-```
-
-Expect `column_exists = true`, `is_not_null = true`, `rows_missing_date = 0`, `index_exists >= 1`.
+Apply every file in `supabase/migrations/` in filename order.
 
 Session refresh uses Next.js 16’s `src/proxy.ts` (not legacy `middleware.ts`).
 
 ### Production
 
-Link a Vercel project to this repo (root = repository root). GitHub Actions runs typecheck, lint, and unit tests; Vercel handles preview and production deploys.
+Link the Vercel project to this repo (root = repository root). GitHub Actions runs typecheck, lint, and unit tests; Vercel handles preview and production deploys.
 
 ---
 
