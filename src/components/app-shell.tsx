@@ -11,9 +11,16 @@ export { LanguageProvider, LanguageToggle }
 
 type NavItem = { key: DictKey | 'nav.activity'; href: string; icon: LucideIcon }
 const navItems: NavItem[] = [
-  ['nav.dashboard', '/dashboard', LayoutDashboard], ['nav.meals', '/meals', Utensils], ['nav.calendar', '/calendar', CalendarDays], ['nav.expenses', '/expenses', CircleDollarSign],
-  ['nav.contributions', '/contributions', WalletCards], ['nav.settlements', '/settlements', BarChart3], ['nav.reports', '/reports', BarChart3], ['nav.settings', '/settings', Settings], ['nav.activity', '/activity', History],
-].map(([key, href, icon]) => ({ key, href, icon }))
+  { key: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { key: 'nav.meals', href: '/meals', icon: Utensils },
+  { key: 'nav.calendar', href: '/calendar', icon: CalendarDays },
+  { key: 'nav.expenses', href: '/expenses', icon: CircleDollarSign },
+  { key: 'nav.contributions', href: '/contributions', icon: WalletCards },
+  { key: 'nav.settlements', href: '/settlements', icon: BarChart3 },
+  { key: 'nav.reports', href: '/reports', icon: BarChart3 },
+  { key: 'nav.settings', href: '/settings', icon: Settings },
+  { key: 'nav.activity', href: '/activity', icon: History },
+]
 const mobileMore = [navItems[4], navItems[5], navItems[6], navItems[7], navItems[8]]
 function isActive(pathname: string, href: string) { return pathname === href || pathname.startsWith(`${href}/`) }
 
