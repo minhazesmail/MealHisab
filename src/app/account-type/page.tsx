@@ -4,6 +4,18 @@ import Link from 'next/link'
 import { ArrowRight, Building2, Check, CreditCard, KeyRound, ShieldCheck, Users } from 'lucide-react'
 import { LanguageToggle } from '@/components/language-provider'
 
+const universities = [
+  ['NSU', 'North South University'],
+  ['BRACU', 'BRAC University'],
+  ['AIUB', 'AIUB'],
+  ['IUB', 'Independent University, Bangladesh'],
+  ['UIU', 'United International University'],
+  ['DIU', 'Daffodil International University'],
+  ['DU', 'University of Dhaka'],
+  ['CU', 'University of Chittagong'],
+  ['GUB', 'Green University of Bangladesh'],
+]
+
 function BrandMark() {
   return (
     <svg width="40" height="40" viewBox="0 0 48 48" fill="none" aria-hidden="true">
@@ -13,6 +25,26 @@ function BrandMark() {
       <path d="M28.8 11.8C31.7 10.2 35.4 10.8 37.3 13.5C33.9 14.8 30.6 14.2 28.8 11.8Z" fill="white" opacity=".94" />
       <defs><linearGradient id="g" x1="8" y1="7" x2="41" y2="44" gradientUnits="userSpaceOnUse"><stop stopColor="#39FF88" /><stop offset="1" stopColor="#19D96B" /></linearGradient></defs>
     </svg>
+  )
+}
+
+function UniversityTrustBanner() {
+  return (
+    <section className="mt-8 overflow-hidden rounded-[30px] border border-brand-green/20 bg-gradient-to-br from-brand-green/[0.08] via-surface to-surface-2 p-5 shadow-soft sm:p-7" aria-label="University community">
+      <div className="flex flex-col items-center text-center">
+        <span className="inline-flex items-center rounded-full border border-brand-green/20 bg-brand-green/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-brand-green">Built for student life</span>
+        <h2 className="mt-3 text-xl font-black tracking-tight sm:text-2xl">Proudly serving students from leading universities across Bangladesh</h2>
+        <p className="mt-2 max-w-2xl text-xs leading-6 text-muted sm:text-sm">MealHisab helps students keep shared flats, messes and monthly expenses simple, transparent and fair.</p>
+      </div>
+      <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-9">
+        {universities.map(([shortName, name]) => (
+          <div key={shortName} title={name} className="group flex min-h-[84px] flex-col items-center justify-center rounded-2xl border border-line bg-surface/90 px-2 py-3 text-center transition hover:-translate-y-0.5 hover:border-brand-green/30 hover:bg-surface-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand-green/20 bg-brand-green/10 text-[11px] font-black tracking-tight text-brand-green transition group-hover:bg-brand-green/15">{shortName}</div>
+            <span className="mt-2 line-clamp-2 text-[9px] font-semibold leading-4 text-muted">{name}</span>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -55,6 +87,8 @@ export default function AccountTypePage() {
         </section>
 
         <div className="mt-7 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border border-line bg-surface/70 p-4 text-center"><p className="text-lg font-black text-brand-green">৳99</p><p className="mt-1 text-xs text-muted">manager plan / month</p></div><div className="rounded-2xl border border-line bg-surface/70 p-4 text-center"><p className="text-lg font-black text-brand-green">10</p><p className="mt-1 text-xs text-muted">invite codes / calendar month</p></div><div className="rounded-2xl border border-line bg-surface/70 p-4 text-center"><p className="text-lg font-black text-brand-green">৳0</p><p className="mt-1 text-xs text-muted">member subscription</p></div></div>
+
+        <UniversityTrustBanner />
 
         <p className="mt-8 text-center text-xs text-muted">Already have a MealHisab account? <Link href="/login" className="font-semibold text-brand-green hover:underline">Log in</Link></p>
       </div>
