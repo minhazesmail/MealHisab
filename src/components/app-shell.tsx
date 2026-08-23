@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, CalendarDays, ChevronRight, CircleDollarSign, History, LayoutDashboard, Menu, Settings, Utensils, WalletCards, X } from 'lucide-react'
+import { BarChart3, CalendarDays, ChevronRight, CircleDollarSign, History, LayoutDashboard, Menu, Settings, Utensils, WalletCards, X, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { LanguageProvider, LanguageToggle, useI18n } from '@/components/language-provider'
 import type { DictKey } from '@/lib/i18n'
 
 export { LanguageProvider, LanguageToggle }
 
-type NavItem = { key: DictKey | 'nav.activity'; href: string; icon: typeof LayoutDashboard }
+type NavItem = { key: DictKey | 'nav.activity'; href: string; icon: LucideIcon }
 const navItems: NavItem[] = [
   ['nav.dashboard', '/dashboard', LayoutDashboard], ['nav.meals', '/meals', Utensils], ['nav.calendar', '/calendar', CalendarDays], ['nav.expenses', '/expenses', CircleDollarSign],
   ['nav.contributions', '/contributions', WalletCards], ['nav.settlements', '/settlements', BarChart3], ['nav.reports', '/reports', BarChart3], ['nav.settings', '/settings', Settings], ['nav.activity', '/activity', History],
