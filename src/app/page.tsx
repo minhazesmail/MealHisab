@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import LandingPage from '@/components/landing-page'
+import UniversityTrustBanner from '@/components/university-trust-banner'
 
 export const metadata: Metadata = {
   title: 'MealHisab BD — Simple meal accounting for shared flats',
@@ -8,5 +9,14 @@ export const metadata: Metadata = {
 }
 
 export default function Home() {
-  return <LandingPage />
+  return (
+    <>
+      <LandingPage />
+      <div className="bg-canvas px-5 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-7xl">
+          <UniversityTrustBanner />
+        </div>
+      </div>
+    </>
+  )
 }
