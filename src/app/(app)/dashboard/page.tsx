@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { buildDashboardMembers, type DashboardMember } from '@/lib/dashboard'
+import { calculateMealRate } from '@/domain/accounting'
 import { createClient } from '@/lib/supabase/server'
 import { fetchAllRows } from '@/lib/supabase/pagination'
 import { DashboardClient } from '@/components/dashboard-client'
@@ -86,7 +87,7 @@ export default async function DashboardPage() {
       totalCost: totalShared,
     })
     const totalMeals = rows.reduce((s, r) => s + r.meals, 0)
-    const rate = totalMeals ? totalShared / totalMeals : 0
+    const rate = calculateMealRate(totalShared, totalMeals)
 
     return (
       <DashboardClient
