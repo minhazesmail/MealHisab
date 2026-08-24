@@ -9,7 +9,7 @@ export function buildDashboardMembers(params: {
   members: { user_id: string; opening_balance: number; profiles: { full_name: string } | null; active_from: string; active_to: string | null }[]
   logs: { user_id: string; date: string; meal_type: 'lunch' | 'dinner' | 'extra'; count: number }[]
   contributions: { user_id: string; amount: number }[]
-  foodCost: number
+  totalCost: number
 }): DashboardMember[] {
   const overrides = new Map(params.logs.map((l) => [`${l.user_id}:${l.date}:${l.meal_type}`, { userId: l.user_id, date: l.date, mealType: l.meal_type, count: l.count } as MealOverride]))
   const rows = params.members.map((member) => {
@@ -25,6 +25,6 @@ export function buildDashboardMembers(params: {
     return { id: member.user_id, name: member.profiles?.full_name ?? 'Member', role: '', meals, mealCost: 0, contribution, openingBalance: Number(member.opening_balance), balance: 0 }
   })
   const totalMeals = rows.reduce((sum, r) => sum + r.meals, 0)
-  const rate = calculateMealRate(params.foodCost, totalMeals)
+  const rate = calculateMealRate(params.totalCost, totalMeals)
   return rows.map((r) => ({ ...r, mealCost: Number((r.meals * rate).toFixed(2)), balance: Number((r.openingBalance + r.contribution - r.meals * rate).toFixed(2)) }))
 }
