@@ -9,7 +9,7 @@ import { extractDbError } from '@/lib/db-errors'
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date')
 const mealSchema = z.object({ flatId: z.string().uuid(), cycleId: z.string().uuid(), userId: z.string().uuid(), date: dateSchema.optional(), mealType: z.enum(['lunch', 'dinner', 'extra']), count: z.number().int().min(0).max(100) })
-const expenseSchema = z.object({ flatId: z.string().uuid(), cycleId: z.string().uuid(), amount: z.number().positive(), category: z.enum(['grocery', 'cook_salary', 'gas', 'other', 'festival']), note: z.string().max(500).optional(), date: dateSchema.optional() })
+const expenseSchema = z.object({ flatId: z.string().uuid(), cycleId: z.string().uuid(), amount: z.number().positive(), category: z.enum(['grocery', 'cook_salary', 'gas', 'other', 'festival']), note: z.string().max(500).optional() })
 const contributionSchema = z.object({ flatId: z.string().uuid(), cycleId: z.string().uuid(), userId: z.string().uuid(), amount: z.number().positive(), note: z.string().max(500).optional(), date: dateSchema.optional() })
 
 type CycleCloseWarning = { warning: boolean; meal_policy: 'opt_in' | 'opt_out'; total_meals: number; grocery_total: number; sample_days: Array<{ date: string; meals: number }> }
