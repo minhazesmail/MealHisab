@@ -73,7 +73,7 @@ export default async function DashboardPage() {
     const typedLogs = logs
     const typedExpenses = expenses
     const typedContributions = contributions
-    const foodCost = typedExpenses
+    const groceryCost = typedExpenses
       .filter((e) => e.category === 'grocery')
       .reduce((s, e) => s + Number(e.amount), 0)
     const totalShared = typedExpenses.reduce((s, e) => s + Number(e.amount), 0)
@@ -83,10 +83,10 @@ export default async function DashboardPage() {
       members: typedMembers,
       logs: typedLogs,
       contributions: typedContributions,
-      foodCost,
+      totalCost: totalShared,
     })
     const totalMeals = rows.reduce((s, r) => s + r.meals, 0)
-    const rate = totalMeals ? foodCost / totalMeals : 0
+    const rate = totalMeals ? totalShared / totalMeals : 0
 
     return (
       <DashboardClient
@@ -96,7 +96,7 @@ export default async function DashboardPage() {
         cycleStart={cycle.start_date}
         cycleEnd={cycle.end_date}
         totalMeals={totalMeals}
-        foodCost={foodCost}
+        foodCost={groceryCost}
         rate={rate}
         totalShared={totalShared}
         rows={rows.map((r) => ({
