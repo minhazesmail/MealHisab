@@ -22,14 +22,21 @@ export function clampDateToRange(date: string, start: string, end: string): stri
  * Auto-assign the effective meal/contribution date:
  * - use provided date if valid
  * - otherwise today in Dhaka
- * - always clamped into the open cycle window
+ * - today's date may be clamped into the open cycle window
+ * - an explicitly supplied date outside the cycle is rejected instead of being silently rewritten
  */
 export function autoAssignCycleDate(
   cycleStart: string,
   cycleEnd: string,
   preferred?: string | null,
 ): string {
+  const hasPreferredDate = Boolean(preferred)
   const candidate =
     preferred && /^\d{4}-\d{2}-\d{2}$/.test(preferred) ? preferred : todayInDhaka()
+
+  if (hasPreferredDate && (!/^\d{4}-\d{2}-\d{2}$/.test(String(preferred)) || preferred! < cycleStart || preferred! > cycleEnd)) {
+    throw new Error(`Date must be within this cycle (${cycleStart} to ${cycleEnd}).`)
+  }
+
   return clampDateToRange(candidate, cycleStart, cycleEnd)
 }
