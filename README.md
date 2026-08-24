@@ -4,7 +4,7 @@
 
 MealHisab replaces notebooks, spreadsheets, and WhatsApp math with one calm ledger for meals, groceries, contributions, and end-of-month balances.
 
-**Production verification deployment refreshed — 2026-08-23.**
+**Production verification deployment refreshed — 2026-08-24.**
 
 **Live app:** [meal-hisab-hemiln.vercel.app](https://meal-hisab-hemiln.vercel.app)
 
