@@ -40,23 +40,3 @@ export async function submitManualManagerPayment(formData: FormData) {
   revalidatePath('/billing')
   redirect('/billing?payment=submitted')
 }
-
-export async function reviewManualManagerPayment(formData: FormData) {
-  const s = await createClient()
-  const { data: { user } } = await s.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-
-  const paymentId = String(formData.get('payment_id') ?? '')
-  const decision = String(formData.get('decision') ?? '')
-  const rejectReason = String(formData.get('reject_reason') ?? '')
-
-  const { error } = await s.rpc('review_manager_payment_request', {
-    p_payment_request_id: paymentId,
-    p_decision: decision,
-    p_reject_reason: rejectReason || null,
-  })
-  if (error) {
-    throw new Error(error.message.includes('platform_admin_required') ? 'Platform admin access required.' : 'Could not review this payment request.')
-  }
-  revalidatePath('/admin/payments')
-}
