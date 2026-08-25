@@ -63,10 +63,8 @@ create policy contributions_insert on public.contributions for insert to authent
 create policy contributions_update on public.contributions for update to authenticated using (private.is_flat_member(flat_id) and (user_id = (select auth.uid()) or private.is_flat_manager(flat_id))) with check (private.is_flat_member(flat_id) and (user_id = (select auth.uid()) or private.is_flat_manager(flat_id)));
 create policy contributions_delete on public.contributions for delete to authenticated using (private.is_flat_manager(flat_id));
 create policy settlements_select on public.settlements for select to authenticated using (private.is_flat_member(flat_id));
-create policy invitations_select on public.invitations for select to authenticated using (private.is_flat_member(flat_id));
-create policy invitations_insert on public.invitations for insert to authenticated with check (private.is_flat_manager(flat_id));
-create policy invitations_update on public.invitations for update to authenticated using (private.is_flat_manager(flat_id)) with check (private.is_flat_manager(flat_id));
-create policy invitations_delete on public.invitations for delete to authenticated using (private.is_flat_manager(flat_id));
+-- public.invitations was never part of the replayable schema. Invite RLS is defined
+-- later on the canonical public.invite_codes table, so do not reference a phantom table here.
 create policy notifications_select on public.notifications for select to authenticated using (user_id = (select auth.uid()) and private.is_flat_member(flat_id));
 create policy notifications_update on public.notifications for update to authenticated using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 create policy audit_logs_admin_select on public.audit_logs for select to authenticated using (private.is_flat_admin(flat_id));
@@ -125,8 +123,6 @@ create index if not exists cycle_members_user_id_idx on public.cycle_members(use
 create index if not exists expenses_created_by_idx on public.expenses(created_by);
 create index if not exists expenses_flat_id_idx on public.expenses(flat_id);
 create index if not exists flats_created_by_idx on public.flats(created_by);
-create index if not exists invitations_created_by_idx on public.invitations(created_by);
-create index if not exists invitations_flat_id_idx on public.invitations(flat_id);
 create index if not exists meal_logs_created_by_idx on public.meal_logs(created_by);
 create index if not exists meal_logs_user_id_idx on public.meal_logs(user_id);
 create index if not exists notifications_flat_id_idx on public.notifications(flat_id);
