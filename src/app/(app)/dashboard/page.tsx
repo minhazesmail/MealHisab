@@ -4,6 +4,7 @@ import { calculateMealRate } from '@/domain/accounting'
 import { createClient } from '@/lib/supabase/server'
 import { fetchAllRows } from '@/lib/supabase/pagination'
 import { DashboardClient } from '@/components/dashboard-client'
+import { DashboardState } from '@/components/dashboard-state'
 
 type CycleMemberRow = {
   user_id: string
@@ -29,16 +30,17 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .eq('status', 'active')
     .maybeSingle()
-  if (membershipError) return <div className="card text-sm text-red-600">Could not load your membership.</div>
+  if (membershipError) return <DashboardState kind="membership_error" />
   if (!membership) redirect('/onboarding')
 
+  const canManage = membership.role === 'admin' || membership.role === 'manager'
   const { data: flat, error: flatError } = await supabase
     .from('flats')
     .select('id,name,invite_code,meal_policy')
     .eq('id', membership.flat_id)
     .maybeSingle()
-  if (flatError) return <div className="card text-sm text-red-600">Could not load the flat.</div>
-  if (!flat) return <div className="card">Flat not found.</div>
+  if (flatError) return <DashboardState kind="flat_error" canManage={canManage} />
+  if (!flat) return <DashboardState kind="flat_missing" canManage={canManage} />
 
   const { data: cycle, error: cycleError } = await supabase
     .from('cycles')
@@ -48,8 +50,8 @@ export default async function DashboardPage() {
     .order('start_date', { ascending: false })
     .limit(1)
     .maybeSingle()
-  if (cycleError) return <div className="card text-sm text-red-600">Could not load the current cycle.</div>
-  if (!cycle) return <div className="card">No open cycle.</div>
+  if (cycleError) return <DashboardState kind="cycle_error" canManage={canManage} />
+  if (!cycle) return <DashboardState kind="no_cycle" canManage={canManage} />
 
   try {
     const [members, logs, expenses, contributions] = await Promise.all([
@@ -112,6 +114,6 @@ export default async function DashboardPage() {
     )
   } catch (error) {
     console.error('[MealHisab][dashboard-pagination]', error)
-    return <div className="card text-sm text-red-600">Could not load the complete dashboard data. Please try again.</div>
+    return <DashboardState kind="data_error" canManage={canManage} />
   }
 }
