@@ -11,6 +11,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Check migration timestamp uniqueness
+        run: |
+          duplicates=$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' | cut -d_ -f1 | sort | uniq -d)
+          if [ -n "$duplicates" ]; then
+            echo "Duplicate Supabase migration timestamp(s):"
+            echo "$duplicates"
+            exit 1
+          fi
       - run: npm install
       - run: npm run typecheck
       - run: npm run lint
