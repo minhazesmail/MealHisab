@@ -3,8 +3,6 @@ on:
   push:
     branches: [main, audit/database-integration-tests]
   pull_request:
-permissions:
-  contents: write
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -13,6 +11,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - name: Check migration timestamp uniqueness
         run: |
           duplicates=$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' | cut -d_ -f1 | sort | uniq -d)
@@ -21,18 +20,7 @@ jobs:
             echo "$duplicates"
             exit 1
           fi
-      - run: npm install
-      - name: Commit generated lockfile
-        if: github.event_name == 'push' && github.ref == 'refs/heads/audit/database-integration-tests' && hashFiles('package-lock.json') != ''
-        run: |
-          if git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json
-          git commit -m "chore: add npm lockfile"
-          git push origin HEAD:audit/database-integration-tests
+      - run: npm ci
       - run: npm run typecheck
       - name: Build production app
         run: npm run build
