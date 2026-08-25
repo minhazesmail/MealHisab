@@ -39,38 +39,55 @@ revoke insert, update, delete on public.payment_requests from authenticated;
 revoke insert, update, delete on public.subscriptions from authenticated;
 
 -- Anonymous callers must never be able to invoke application SECURITY DEFINER RPCs.
-revoke execute on function public.admin_cancel_subscription(uuid) from anon;
-revoke execute on function public.admin_extend_subscription(uuid, integer) from anon;
-revoke execute on function public.admin_override_invite_limit(uuid, integer) from anon;
-revoke execute on function public.admin_unlock_flat(uuid, integer) from anon;
-revoke execute on function public.review_manager_payment_request(uuid, text, text) from anon;
-revoke execute on function public.archive_flat(uuid) from anon;
-revoke execute on function public.cancel_manager_subscription() from anon;
-revoke execute on function public.renew_manager_subscription() from anon;
-revoke execute on function public.approve_guest_meal(uuid) from anon;
-revoke execute on function public.cancel_guest_meal(uuid) from anon;
-revoke execute on function public.approve_member_leave(uuid) from anon;
-revoke execute on function public.cancel_member_leave(uuid) from anon;
-revoke execute on function public.configure_cycle_mode(uuid, text, text, date, date, boolean) from anon;
-revoke execute on function public.update_guest_meal_policy(uuid, text, integer, boolean) from anon;
-revoke execute on function public.update_notification_preferences(boolean, text, time, boolean, time, time, text) from anon;
-revoke execute on function public.manager_set_member_leave(uuid, uuid, date, date, text) from anon;
-revoke execute on function public.request_flat_recovery(uuid, text, text) from anon;
-revoke execute on function public.request_member_leave(uuid, date, date, text) from anon;
-revoke execute on function public.record_guest_meal(uuid, date, text, integer, text) from anon;
-revoke execute on function public.generate_invite_code(uuid, integer) from anon;
-revoke execute on function public.revoke_invite_code(uuid) from anon;
-revoke execute on function public.join_flat_with_code(text) from anon;
-revoke execute on function public.leave_flat(uuid) from anon;
-revoke execute on function public.create_manual_manager_payment(text, text, text, text) from anon;
-revoke execute on function public.create_flat(text, text, integer, text) from anon;
-revoke execute on function public.close_cycle(uuid) from anon;
-revoke execute on function public.set_cycle_closed_day(uuid, date, text) from anon;
-revoke execute on function public.remove_cycle_closed_day(uuid, date) from anon;
-revoke execute on function public.ensure_notification_preferences() from anon;
-revoke execute on function public.mark_notification_read(uuid) from anon;
-revoke execute on function public.guest_meal_count(uuid, uuid) from anon;
-revoke execute on function public.effective_meal_count(uuid, uuid) from anon;
+-- Historical branches did not always contain every RPC signature, so make ACL hardening
+-- conditional on the function actually existing during a clean replay.
+do $$
+declare
+  v_signature text;
+  v_function regprocedure;
+begin
+  foreach v_signature in array array[
+    'public.admin_cancel_subscription(uuid)',
+    'public.admin_extend_subscription(uuid,integer)',
+    'public.admin_override_invite_limit(uuid,integer)',
+    'public.admin_unlock_flat(uuid,integer)',
+    'public.review_manager_payment_request(uuid,text,text)',
+    'public.archive_flat(uuid)',
+    'public.cancel_manager_subscription()',
+    'public.renew_manager_subscription()',
+    'public.approve_guest_meal(uuid)',
+    'public.cancel_guest_meal(uuid)',
+    'public.approve_member_leave(uuid)',
+    'public.cancel_member_leave(uuid)',
+    'public.configure_cycle_mode(uuid,text,text,date,date,boolean)',
+    'public.update_guest_meal_policy(uuid,text,integer,boolean)',
+    'public.update_notification_preferences(boolean,text,time,boolean,time,time,text)',
+    'public.manager_set_member_leave(uuid,uuid,date,date,text)',
+    'public.request_flat_recovery(uuid,text,text)',
+    'public.request_member_leave(uuid,date,date,text)',
+    'public.record_guest_meal(uuid,date,text,integer,text)',
+    'public.generate_invite_code(uuid,integer)',
+    'public.revoke_invite_code(uuid)',
+    'public.join_flat_with_code(text)',
+    'public.leave_flat(uuid)',
+    'public.create_manual_manager_payment(text,text,text,text)',
+    'public.create_flat(text,text,integer,text)',
+    'public.close_cycle(uuid)',
+    'public.set_cycle_closed_day(uuid,date,text)',
+    'public.remove_cycle_closed_day(uuid,date)',
+    'public.ensure_notification_preferences()',
+    'public.mark_notification_read(uuid)',
+    'public.guest_meal_count(uuid,uuid)',
+    'public.effective_meal_count(uuid,uuid)'
+  ]
+  loop
+    v_function := to_regprocedure(v_signature);
+    if v_function is not null then
+      execute format('revoke execute on function %s from anon', v_function);
+    end if;
+  end loop;
+end;
+$$;
 
 -- Cryptographically stronger invite code generation using pgcrypto bytes.
 create or replace function private.generate_invite_code()
