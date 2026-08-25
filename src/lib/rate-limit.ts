@@ -8,7 +8,7 @@ const url = process.env.UPSTASH_REDIS_REST_URL
 const token = process.env.UPSTASH_REDIS_REST_TOKEN
 const redis = url && token ? new Redis({ url, token }) : null
 
-const rateLimits: Record<string, Ratelimit> | null = redis
+const rateLimits = redis
   ? {
       joinFlat: new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5, '1 h'), prefix: 'mealhisab:join-flat', ephemeralCache: new Map() }),
       joinFlatWithCode: new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5, '1 h'), prefix: 'mealhisab:join-flat-code', ephemeralCache: new Map() }),
@@ -51,7 +51,7 @@ async function clientIp() {
   return requestHeaders.get('x-real-ip') ?? requestHeaders.get('x-vercel-forwarded-for') ?? forwarded?.split(',')[0]?.trim() ?? 'unknown'
 }
 
-type RateLimitName = string
+type RateLimitName = keyof NonNullable<typeof rateLimits>
 
 export async function enforceRateLimit(name: RateLimitName, identifier?: string) {
   if (!rateLimits) {
@@ -59,7 +59,7 @@ export async function enforceRateLimit(name: RateLimitName, identifier?: string)
     throw new Error('Rate limiting is not configured on the server')
   }
   const limiter = rateLimits[name]
-  if (!limiter) throw new Error(`Rate limiter '${name}' is not configured`) 
+  if (!limiter) throw new Error(`Rate limiter '${name}' is not configured`)
   const key = identifier ?? (await clientIp())
   const result = await limiter.limit(key)
   if (result.success) return
