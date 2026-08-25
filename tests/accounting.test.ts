@@ -42,6 +42,17 @@ describe('MealHisab accounting', () => {
     expect(result.closingBalance).toBe(3900)
   })
 
+  it('subtracts guest charges from the member closing balance', () => {
+    const result = calculateSettlements(
+      [{ userId: 'u1', mealCount: 75, contribution: 2000, openingBalance: 0, guestCharge: 200 }],
+      1500,
+      75,
+    )[0]
+    expect(result.mealCost).toBe(1500)
+    expect(result.guestCharge).toBe(200)
+    expect(result.closingBalance).toBe(300)
+  })
+
   it('attributes extra meals to the host member', () => {
     const member = { userId: 'u1', joinedDate: '2026-08-01' }
     const logs = new Map<string, MealOverride>([
