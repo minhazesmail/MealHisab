@@ -21,6 +21,7 @@ export interface MemberSettlementInput {
   mealCount: number
   contribution: number
   openingBalance: number
+  guestCharge?: number
 }
 
 export interface MemberSettlement {
@@ -29,6 +30,7 @@ export interface MemberSettlement {
   mealCost: number
   contribution: number
   openingBalance: number
+  guestCharge: number
   closingBalance: number
 }
 
@@ -87,6 +89,7 @@ export function calculateSettlements(
   const rate = calculateMealRate(totalCost, totalMeals)
   const preliminary = inputs.map((input) => ({
     ...input,
+    guestCharge: roundMoney(input.guestCharge ?? 0),
     mealCost: roundMoney(input.mealCount * rate),
   }))
 
@@ -101,7 +104,7 @@ export function calculateSettlements(
 
   return preliminary.map((input, index) => {
     const mealCost = index === adjustmentIndex ? roundMoney(input.mealCost + residual) : input.mealCost
-    const closingBalance = roundMoney(input.openingBalance + input.contribution - mealCost)
+    const closingBalance = roundMoney(input.openingBalance + input.contribution - mealCost - input.guestCharge)
     return { ...input, mealCost, closingBalance }
   })
 }
