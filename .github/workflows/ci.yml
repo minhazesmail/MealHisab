@@ -23,3 +23,15 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start local Supabase
+        run: supabase start
+      - name: Rebuild database from migrations
+        run: supabase db reset
+      - name: Run database integration tests
+        run: supabase test db
+      - name: Stop local Supabase
+        if: always()
+        run: supabase stop --no-backup
