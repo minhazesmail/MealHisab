@@ -21,6 +21,8 @@ jobs:
           fi
       - run: npm install
       - run: npm run typecheck
+      - name: Build production app
+        run: npm run build
       - uses: supabase/setup-cli@v1
         with:
           version: latest
