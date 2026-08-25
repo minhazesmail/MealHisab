@@ -21,8 +21,6 @@ jobs:
           fi
       - run: npm install
       - run: npm run typecheck
-      - run: npm run lint
-      - run: npm run test
       - uses: supabase/setup-cli@v1
         with:
           version: latest
@@ -34,4 +32,6 @@ jobs:
         run: supabase test db
       - name: Stop local Supabase
         if: always()
-        run: supabase stop --no-backup
+        run: supabase stop --no-backup || true
+      - run: npm run lint
+      - run: npm run test
