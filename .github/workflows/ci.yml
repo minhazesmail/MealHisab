@@ -20,9 +20,18 @@ jobs:
             exit 1
           fi
       - run: npm install
+      - name: Upload generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-lock
+          path: package-lock.json
       - run: npm run typecheck
       - name: Build production app
         run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-publishable-key
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
       - uses: supabase/setup-cli@v1
         with:
           version: latest
