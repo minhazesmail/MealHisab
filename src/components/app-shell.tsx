@@ -23,7 +23,7 @@ const secondaryNav: NavItem[] = [
   { key: 'nav.settings', href: '/settings', icon: Settings },
   { key: 'nav.activity', href: '/activity', icon: History },
 ]
-const mobileMore = secondaryNav.slice()
+const mobileMore: NavItem[] = [primaryNav[2], ...secondaryNav]
 function isActive(pathname: string, href: string) { return pathname === href || pathname.startsWith(`${href}/`) }
 
 function NavLink({ item }: { item: NavItem }) {
@@ -59,7 +59,7 @@ export function MobileNav() {
         <MobileNavItem item={primaryNav[0]}/>
         <button type="button" aria-label={t(meals.key as DictKey)} aria-current={mealsActive ? 'page' : undefined} className="relative -mt-6 flex min-w-0 flex-1 flex-col items-center gap-1 text-[10px] font-bold text-black" onClick={() => { window.location.href = meals.href }}><span className={`flex h-14 w-14 items-center justify-center rounded-full border-4 border-canvas bg-brand-green shadow-glow transition ${mealsActive ? 'scale-105' : ''}`}><MealsIcon size={24}/></span><span className="text-brand-green">{t(meals.key as DictKey)}</span></button>
         <MobileNavItem item={primaryNav[3]}/>
-        <MobileNavItem item={primaryNav[2]}/>
+        <MobileNavItem item={primaryNav[4]}/>
         <button type="button" onClick={() => setMoreOpen(open => !open)} className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-semibold ${moreActive || moreOpen ? 'text-brand-green' : 'text-muted'}`} aria-expanded={moreOpen} aria-label="More navigation">{moreOpen ? <X size={19}/> : <Menu size={19}/>}<span>More</span></button>
       </div>
     </nav>
