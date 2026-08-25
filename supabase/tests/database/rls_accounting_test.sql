@@ -5,8 +5,8 @@ set local search_path = public, extensions;
 
 select plan(7);
 
--- Stable fixtures: two tenants, one manager + one member in tenant A,
--- and one manager in tenant B. All IDs are deterministic for readable failures.
+create temporary table fixture_ids(key text primary key, id uuid) on commit drop;
+
 insert into auth.users (id, email, phone, raw_user_meta_data)
 values
   ('00000000-0000-0000-0000-000000000001', 'manager-a@example.test', '+8801700000001', '{"full_name":"Manager A"}'::jsonb),
@@ -21,37 +21,52 @@ values
   ('00000000-0000-0000-0000-000000000003', '+8801700000003', 'Manager B')
 on conflict (id) do update set phone = excluded.phone, full_name = excluded.full_name;
 
-insert into public.flats (id, name, invite_code, created_by, owner_id)
+insert into public.subscriptions(user_id, plan, status, current_period_start, current_period_end)
 values
-  ('10000000-0000-0000-0000-000000000001', 'Tenant A', 'TENANTA001', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001'),
-  ('10000000-0000-0000-0000-000000000002', 'Tenant B', 'TENANTB001', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000003');
+  ('00000000-0000-0000-0000-000000000001', 'manager_monthly', 'active', now(), now() + interval '30 days'),
+  ('00000000-0000-0000-0000-000000000003', 'manager_monthly', 'active', now(), now() + interval '30 days');
 
--- Exercise the real bootstrap guard instead of bypassing it: only each flat owner
--- may become the first admin, then tenant A's admin may add a normal member.
-set local role authenticated;
+-- Create both tenants through the same RPC the application uses. This verifies
+-- invite generation and first-admin bootstrapping before any RLS assertions run.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
-insert into public.flat_members (flat_id, user_id, role, status)
-values ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'admin', 'active');
-insert into public.flat_members (flat_id, user_id, role, status)
-values ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', 'member', 'active');
+insert into fixture_ids(key, id)
+select 'flat_a', public.create_flat('Tenant A', null, 1, 'opt_in');
 
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000003', true);
-insert into public.flat_members (flat_id, user_id, role, status)
-values ('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000003', 'admin', 'active');
-reset role;
+insert into fixture_ids(key, id)
+select 'flat_b', public.create_flat('Tenant B', null, 1, 'opt_in');
 
-insert into public.cycles (id, flat_id, start_date, end_date, status)
-values
-  ('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '2026-08-01', '2026-08-31', 'open'),
-  ('20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '2026-07-01', '2026-07-31', 'closed'),
-  ('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000002', '2026-08-01', '2026-08-31', 'open');
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+insert into public.flat_members(flat_id, user_id, role, status)
+select id, '00000000-0000-0000-0000-000000000002', 'member', 'active'
+from fixture_ids where key = 'flat_a';
+
+insert into fixture_ids(key, id)
+select 'cycle_a_open', c.id
+from public.cycles c join fixture_ids f on f.key='flat_a' and f.id=c.flat_id
+where c.status='open' limit 1;
+
+insert into fixture_ids(key, id)
+select 'cycle_b_open', c.id
+from public.cycles c join fixture_ids f on f.key='flat_b' and f.id=c.flat_id
+where c.status='open' limit 1;
+
+insert into public.cycles(id, flat_id, start_date, end_date, status)
+select '20000000-0000-0000-0000-000000000002', id, '2026-07-01', '2026-07-31', 'closed'
+from fixture_ids where key='flat_a';
 
 insert into public.meal_logs (id, flat_id, cycle_id, user_id, date, meal_type, count, created_by)
-values
-  ('30000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', '2026-08-10', 'lunch', 1, '00000000-0000-0000-0000-000000000002'),
-  ('30000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '2026-08-11', 'lunch', 1, '00000000-0000-0000-0000-000000000001'),
-  ('30000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002', '2026-07-10', 'lunch', 1, '00000000-0000-0000-0000-000000000002'),
-  ('30000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000003', '2026-08-10', 'lunch', 1, '00000000-0000-0000-0000-000000000003');
+select '30000000-0000-0000-0000-000000000001', fa.id, ca.id, '00000000-0000-0000-0000-000000000002', '2026-08-10', 'lunch', 1, '00000000-0000-0000-0000-000000000002'
+from fixture_ids fa, fixture_ids ca where fa.key='flat_a' and ca.key='cycle_a_open'
+union all
+select '30000000-0000-0000-0000-000000000002', fa.id, ca.id, '00000000-0000-0000-0000-000000000001', '2026-08-11', 'lunch', 1, '00000000-0000-0000-0000-000000000001'
+from fixture_ids fa, fixture_ids ca where fa.key='flat_a' and ca.key='cycle_a_open'
+union all
+select '30000000-0000-0000-0000-000000000003', fa.id, '20000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002', '2026-07-10', 'lunch', 1, '00000000-0000-0000-0000-000000000002'
+from fixture_ids fa where fa.key='flat_a'
+union all
+select '30000000-0000-0000-0000-000000000004', fb.id, cb.id, '00000000-0000-0000-0000-000000000003', '2026-08-10', 'lunch', 1, '00000000-0000-0000-0000-000000000003'
+from fixture_ids fb, fixture_ids cb where fb.key='flat_b' and cb.key='cycle_b_open';
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
