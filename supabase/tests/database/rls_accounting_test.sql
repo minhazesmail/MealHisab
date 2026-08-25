@@ -26,11 +26,19 @@ values
   ('10000000-0000-0000-0000-000000000001', 'Tenant A', 'TENANTA001', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001'),
   ('10000000-0000-0000-0000-000000000002', 'Tenant B', 'TENANTB001', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000003');
 
+-- Exercise the real bootstrap guard instead of bypassing it: only each flat owner
+-- may become the first admin, then tenant A's admin may add a normal member.
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
 insert into public.flat_members (flat_id, user_id, role, status)
-values
-  ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'admin', 'active'),
-  ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', 'member', 'active'),
-  ('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000003', 'admin', 'active');
+values ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'admin', 'active');
+insert into public.flat_members (flat_id, user_id, role, status)
+values ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002', 'member', 'active');
+
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000003', true);
+insert into public.flat_members (flat_id, user_id, role, status)
+values ('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000003', 'admin', 'active');
+reset role;
 
 insert into public.cycles (id, flat_id, start_date, end_date, status)
 values
@@ -106,12 +114,12 @@ select results_eq(
   'member can edit their own meal in an open cycle'
 );
 
+reset role;
 select like(
   pg_get_functiondef('private.close_cycle_internal(uuid)'::regprocedure),
   '%opening_balance+contribution-meal_cost-guest_charge%',
   'guest charges reduce closing balance in cycle close'
 );
 
-reset role;
 select * from finish();
 rollback;
