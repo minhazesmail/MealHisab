@@ -30,45 +30,98 @@ function navLabel(item: NavItem, locale: 'en' | 'bn', t: (key: DictKey) => strin
 }
 
 function NavLink({ item }: { item: NavItem }) {
-  const { t, locale } = useI18n(); const pathname = usePathname(); const active = isActive(pathname, item.href); const Icon = item.icon
-  return <Link href={item.href} className={`group flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${active ? 'border-line-strong bg-surface-3 text-brand-green shadow-glow' : 'border-transparent text-muted hover:border-line hover:bg-surface-2 hover:text-main'}`}><Icon size={18} strokeWidth={active ? 2.3 : 2}/><span className="flex-1">{navLabel(item, locale, t)}</span><ChevronRight size={14} className={`transition ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}/></Link>
+  const { t, locale } = useI18n()
+  const pathname = usePathname()
+  const active = isActive(pathname, item.href)
+  const Icon = item.icon
+  return (
+    <Link
+      href={item.href}
+      className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition duration-200 ${active ? 'bg-brand-green/10 text-main' : 'text-muted hover:bg-surface-2 hover:text-main'}`}
+    >
+      <span className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${active ? 'bg-brand-green text-white shadow-sm' : 'bg-transparent text-muted group-hover:bg-surface-3 group-hover:text-main'}`}>
+        <Icon size={16} strokeWidth={active ? 2.25 : 2}/>
+      </span>
+      <span className="flex-1">{navLabel(item, locale, t)}</span>
+      <ChevronRight size={14} className={`transition ${active ? 'translate-x-0 text-brand-green opacity-100' : '-translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-50'}`}/>
+    </Link>
+  )
 }
 
 function DesktopNav() {
   const { locale } = useI18n()
-  return <aside className="hidden w-64 shrink-0 border-r border-line bg-surface/95 lg:flex lg:flex-col">
-    <div className="border-b border-line px-5 pb-5 pt-6">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">{locale === 'bn' ? 'ওয়ার্কস্পেস' : 'Workspace'}</p>
-      <p className="mt-2 text-sm font-semibold text-main">{locale === 'bn' ? 'আপনার শেয়ার্ড রান্নাঘর, এক জায়গায়।' : 'Your shared kitchen, in one place.'}</p>
-    </div>
-    <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-5">
-      <div><p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-muted">{locale === 'bn' ? 'দৈনিক' : 'Daily'}</p><div className="space-y-1">{primaryNav.map(item => <NavLink key={item.href} item={item}/>)}</div></div>
-      <div><p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-muted">{locale === 'bn' ? 'ম্যানেজ' : 'Manage'}</p><div className="space-y-1">{secondaryNav.map(item => <NavLink key={item.href} item={item}/>)}</div></div>
-    </nav>
-    <div className="border-t border-line px-5 py-4 text-[11px] text-muted">{locale === 'bn' ? 'MealHisab BD · সহজ মেস হিসাব' : 'MealHisab BD · Simple mess accounting'}</div>
-  </aside>
+  return (
+    <aside className="hidden w-[248px] shrink-0 border-r border-line/80 bg-surface/72 backdrop-blur-xl lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
+      <div className="px-5 pb-5 pt-5">
+        <Link href="/dashboard" className="flex items-center gap-3 rounded-2xl px-1 py-2">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-brand-green-2 to-brand-green text-white shadow-sm"><Utensils size={18}/></span>
+          <div><p className="text-[15px] font-black tracking-[-0.025em] text-main">MealHisab</p><p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.17em] text-muted">Bangladesh</p></div>
+        </Link>
+      </div>
+      <div className="mx-5 h-px bg-line" />
+      <nav className="flex-1 space-y-7 overflow-y-auto px-3 py-5">
+        <div>
+          <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted/80">{locale === 'bn' ? 'দৈনিক' : 'Daily'}</p>
+          <div className="space-y-1">{primaryNav.map(item => <NavLink key={item.href} item={item}/>)}</div>
+        </div>
+        <div>
+          <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted/80">{locale === 'bn' ? 'ম্যানেজ' : 'Manage'}</p>
+          <div className="space-y-1">{secondaryNav.map(item => <NavLink key={item.href} item={item}/>)}</div>
+        </div>
+      </nav>
+      <div className="m-4 rounded-2xl border border-line bg-surface-2/70 p-4">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-brand-green">{locale === 'bn' ? 'ওয়ার্কস্পেস' : 'Workspace'}</p>
+        <p className="mt-2 text-xs leading-5 text-muted">{locale === 'bn' ? 'মিল, খরচ ও ব্যালেন্স—একটি নির্ভরযোগ্য লেজারে।' : 'Meals, expenses and balances in one reliable ledger.'}</p>
+      </div>
+    </aside>
+  )
 }
 
 function MobileNavItem({ item }: { item: NavItem }) {
-  const { t, locale } = useI18n(); const pathname = usePathname(); const active = isActive(pathname, item.href); const Icon = item.icon
-  return <Link href={item.href} className={`flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[11px] font-semibold leading-none ${active ? 'text-brand-green' : 'text-muted'}`}><Icon size={20}/><span className="max-w-full truncate">{navLabel(item, locale, t)}</span></Link>
+  const { t, locale } = useI18n()
+  const pathname = usePathname()
+  const active = isActive(pathname, item.href)
+  const Icon = item.icon
+  return (
+    <Link href={item.href} className={`flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-semibold leading-none transition ${active ? 'text-brand-green' : 'text-muted'}`}>
+      <span className={`grid h-8 w-8 place-items-center rounded-lg ${active ? 'bg-brand-green/10' : ''}`}><Icon size={18}/></span>
+      <span className="max-w-full truncate">{navLabel(item, locale, t)}</span>
+    </Link>
+  )
 }
 
 export function MobileNav() {
-  const { t, locale } = useI18n(); const pathname = usePathname(); const [moreOpen, setMoreOpen] = useState(false)
-  const moreActive = mobileMore.some(({ href }) => isActive(pathname, href)); const meals = primaryNav[1]; const mealsActive = isActive(pathname, meals.href); const MealsIcon = meals.icon
+  const { t, locale } = useI18n()
+  const pathname = usePathname()
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreActive = mobileMore.some(({ href }) => isActive(pathname, href))
+  const meals = primaryNav[1]
+  const mealsActive = isActive(pathname, meals.href)
+  const MealsIcon = meals.icon
   const moreLabel = locale === 'bn' ? 'আরও' : 'More'
   return <>
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 px-2 pb-[calc(env(safe-area-inset-bottom)+0.45rem)] pt-2 backdrop-blur-xl lg:hidden">
-      <div className="mx-auto flex max-w-lg items-end gap-1">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] lg:hidden">
+      <nav className="pointer-events-auto mx-auto flex max-w-lg items-end gap-1 rounded-[22px] border border-line bg-surface/92 px-2 pb-2 pt-2 shadow-[0_20px_55px_rgba(0,0,0,.18)] backdrop-blur-2xl">
         <MobileNavItem item={primaryNav[0]}/>
-        <Link href={meals.href} aria-label={t(meals.key as DictKey)} aria-current={mealsActive ? 'page' : undefined} className="relative -mt-6 flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-bold leading-none text-black"><span className={`flex h-14 w-14 items-center justify-center rounded-full border-4 border-canvas bg-brand-green shadow-glow transition ${mealsActive ? 'scale-105' : ''}`}><MealsIcon size={24}/></span><span className="text-brand-green">{t(meals.key as DictKey)}</span></Link>
+        <Link href={meals.href} aria-label={t(meals.key as DictKey)} aria-current={mealsActive ? 'page' : undefined} className="relative -mt-7 flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 text-[10px] font-bold leading-none text-main">
+          <span className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-green-2 to-brand-green text-white shadow-[0_12px_28px_rgba(16,185,129,.28)] transition ${mealsActive ? '-translate-y-0.5 scale-[1.03]' : ''}`}><MealsIcon size={23}/></span>
+          <span className="text-brand-green">{t(meals.key as DictKey)}</span>
+        </Link>
         <MobileNavItem item={primaryNav[3]}/>
         <MobileNavItem item={primaryNav[4]}/>
-        <button type="button" onClick={() => setMoreOpen(open => !open)} className={`flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[11px] font-semibold leading-none ${moreActive || moreOpen ? 'text-brand-green' : 'text-muted'}`} aria-expanded={moreOpen} aria-label={locale === 'bn' ? 'আরও নেভিগেশন' : 'More navigation'}>{moreOpen ? <X size={20}/> : <Menu size={20}/>}<span>{moreLabel}</span></button>
+        <button type="button" onClick={() => setMoreOpen(open => !open)} className={`flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-semibold leading-none transition ${moreActive || moreOpen ? 'text-brand-green' : 'text-muted'}`} aria-expanded={moreOpen} aria-label={locale === 'bn' ? 'আরও নেভিগেশন' : 'More navigation'}>
+          <span className={`grid h-8 w-8 place-items-center rounded-lg ${moreActive || moreOpen ? 'bg-brand-green/10' : ''}`}>{moreOpen ? <X size={18}/> : <Menu size={18}/>}</span><span>{moreLabel}</span>
+        </button>
+      </nav>
+    </div>
+    {moreOpen && <div className="fixed inset-0 z-30 bg-black/35 backdrop-blur-[3px] lg:hidden" onClick={() => setMoreOpen(false)}>
+      <div className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+6.1rem)] mx-auto max-w-lg px-3" onClick={event => event.stopPropagation()}>
+        <div className="rounded-[26px] border border-line bg-surface/96 p-4 shadow-[0_28px_80px_rgba(0,0,0,.28)] backdrop-blur-2xl">
+          <div className="mb-4 flex items-center justify-between px-1"><div><p className="eyebrow">{moreLabel}</p><p className="mt-1.5 text-base font-bold tracking-tight text-main">{locale === 'bn' ? 'আপনার মেস ম্যানেজ করুন' : 'Manage your mess'}</p></div><button type="button" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:bg-surface-2 hover:text-main" onClick={() => setMoreOpen(false)} aria-label={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}><X size={17}/></button></div>
+          <div className="grid grid-cols-2 gap-2.5">{mobileMore.map((item) => { const { href, icon: Icon } = item; const active = isActive(pathname, href); return <Link key={href} href={href} onClick={() => setMoreOpen(false)} className={`flex min-h-16 items-center gap-3 rounded-2xl border px-3.5 py-3 text-sm font-semibold transition ${active ? 'border-brand-green/30 bg-brand-green/10 text-main' : 'border-line bg-surface-2/70 text-main hover:border-line-strong'}`}><span className={`grid h-9 w-9 place-items-center rounded-xl ${active ? 'bg-brand-green text-white' : 'bg-surface-3 text-muted'}`}><Icon size={18}/></span><span>{navLabel(item, locale, t)}</span></Link> })}</div>
+        </div>
       </div>
-    </nav>
-    {moreOpen && <div className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden" onClick={() => setMoreOpen(false)}><div className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5rem)] mx-auto max-w-lg px-3" onClick={event => event.stopPropagation()}><div className="rounded-3xl border border-line-strong bg-surface p-4 shadow-2xl"><div className="mb-4 flex items-center justify-between px-1"><div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">{moreLabel}</p><p className="mt-1 text-base font-semibold text-main">{locale === 'bn' ? 'আপনার মেস ম্যানেজ করুন' : 'Manage your mess'}</p></div><button type="button" className="flex h-10 w-10 items-center justify-center rounded-xl text-muted hover:bg-surface-2 hover:text-main" onClick={() => setMoreOpen(false)} aria-label={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}><X size={19}/></button></div><div className="grid grid-cols-2 gap-2.5">{mobileMore.map((item) => { const { href, icon: Icon } = item; const active = isActive(pathname, href); return <Link key={href} href={href} onClick={() => setMoreOpen(false)} className={`flex min-h-14 items-center gap-3 rounded-2xl border px-3.5 py-3 text-sm font-semibold ${active ? 'border-line-strong bg-surface-3 text-brand-green' : 'border-line bg-surface-2 text-main'}`}><Icon size={20}/><span>{navLabel(item, locale, t)}</span></Link> })}</div></div></div></div>}
+    </div>}
   </>
 }
 
