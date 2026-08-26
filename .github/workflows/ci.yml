@@ -1,9 +1,7 @@
 name: MealHisab CI
-permissions:
-  contents: write
 on:
   push:
-    branches: [main, audit/database-integration-tests]
+    branches: [main]
   pull_request:
 jobs:
   validate:
@@ -23,21 +21,6 @@ jobs:
             exit 1
           fi
       - run: npm ci
-      - name: Upgrade audited dependencies
-        if: github.ref == 'refs/heads/audit/database-integration-tests'
-        run: |
-          npm install --save-exact postcss@8.5.26
-          npm install --save-dev --save-exact vitest@3.2.7
-          npm audit --audit-level=high
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add package.json package-lock.json
-          if git diff --cached --quiet; then
-            echo "Dependency files already current."
-          else
-            git commit -m "fix audited dependency vulnerabilities"
-            git push
-          fi
       - run: npm run typecheck
       - name: Build production app
         run: npm run build
