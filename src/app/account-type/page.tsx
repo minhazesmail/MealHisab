@@ -2,19 +2,8 @@
 
 import Link from 'next/link'
 import { ArrowRight, Building2, Check, KeyRound, ShieldCheck, Users } from 'lucide-react'
+import { BrandLogoMark } from '@/components/brand-logo-mark'
 import { LanguageToggle, useI18n } from '@/components/language-provider'
-
-function BrandMark() {
-  return (
-    <svg width="40" height="40" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <rect x="2" y="2" width="44" height="44" rx="14" fill="url(#g)" />
-      <path d="M14 16.5C17.5 13.5 24 13.2 28.7 16.1C32.5 18.4 35 22 34.2 26.1C33.3 30.9 28.8 34 23 34C17.2 34 13.8 30.8 13.8 26.1C13.8 22.2 16.2 19.1 20.2 17.3" stroke="white" strokeWidth="2.4" strokeLinecap="round" />
-      <path d="M21 21.2H31.8M21 26H29M21 30.8H27" stroke="white" strokeWidth="2.1" strokeLinecap="round" opacity=".92" />
-      <path d="M28.8 11.8C31.7 10.2 35.4 10.8 37.3 13.5C33.9 14.8 30.6 14.2 28.8 11.8Z" fill="white" opacity=".94" />
-      <defs><linearGradient id="g" x1="8" y1="7" x2="41" y2="44" gradientUnits="userSpaceOnUse"><stop stopColor="#39FF88" /><stop offset="1" stopColor="#19D96B" /></linearGradient></defs>
-    </svg>
-  )
-}
 
 export default function AccountTypePage() {
   const { locale } = useI18n()
@@ -25,7 +14,7 @@ export default function AccountTypePage() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[640px] bg-[radial-gradient(circle_at_20%_5%,_rgba(57,255,136,.15),_transparent_34%),radial-gradient(circle_at_88%_18%,_rgba(25,217,107,.10),_transparent_30%)]" />
       <div className="relative mx-auto max-w-4xl">
         <div className="mb-10 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3"><BrandMark /><div><div className="text-sm font-black tracking-tight sm:text-base">MealHisab</div><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">Bangladesh</div></div></Link>
+          <Link href="/" className="flex items-center gap-3"><BrandLogoMark size={40} /><div><div className="text-sm font-black tracking-tight sm:text-base">MealHisab</div><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">Bangladesh</div></div></Link>
           <LanguageToggle />
         </div>
 
