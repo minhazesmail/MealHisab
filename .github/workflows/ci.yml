@@ -1,7 +1,7 @@
 name: MealHisab CI
 on:
   push:
-    branches: [main]
+    branches: [main, audit/database-integration-tests]
   pull_request:
 jobs:
   validate:
@@ -21,6 +21,8 @@ jobs:
             exit 1
           fi
       - run: npm ci
+      - name: Diagnose dependency advisories
+        run: npm audit --json || true
       - run: npm run typecheck
       - name: Build production app
         run: npm run build
