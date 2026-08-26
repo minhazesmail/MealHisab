@@ -32,7 +32,7 @@ export default function AccountTypePage() {
         <header className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-green">{bn ? 'শুরু করার আগে' : 'Before you continue'}</p>
           <h1 className="mt-3 text-4xl font-black tracking-[-0.04em] sm:text-5xl">{bn ? 'আপনি মেস ম্যানেজ করেন, নাকি মেম্বার?' : 'Do you manage the mess, or are you joining one?'}</h1>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-muted sm:text-base">{bn ? 'ম্যানেজার একটি ফ্ল্যাট চালানোর জন্য ৳99/মাস দেয়। মেম্বাররা ফ্ল্যাট কোড দিয়ে ফ্রি যোগ দেয়।' : 'Managers pay ৳99/month to run one flat. Members join an existing flat for free with a Flat Code.'}</p>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-muted sm:text-base">{bn ? 'ম্যানেজার একটি ফ্ল্যাট চালানোর জন্য ৳49/মাস দেয়। মেম্বাররা ফ্ল্যাট কোড দিয়ে ফ্রি যোগ দেয়।' : 'Managers pay ৳49/month to run one flat. Members join an existing flat for free with a Flat Code.'}</p>
         </header>
 
         <section className="mt-10 grid gap-5 md:grid-cols-2" aria-label={bn ? 'অ্যাকাউন্ট টাইপ' : 'Account type'}>
@@ -41,7 +41,7 @@ export default function AccountTypePage() {
             <div className="relative">
               <div className="flex items-start justify-between gap-4">
                 <div className="rounded-2xl bg-brand-green/15 p-3.5 text-brand-green"><Building2 size={24} /></div>
-                <span className="rounded-full border border-brand-green/25 bg-brand-green/10 px-3 py-1 text-[11px] font-bold text-brand-green">৳99 / {bn ? 'মাস' : 'month'}</span>
+                <span className="rounded-full border border-brand-green/25 bg-brand-green/10 px-3 py-1 text-[11px] font-bold text-brand-green">৳49 / {bn ? 'মাস' : 'month'}</span>
               </div>
               <h2 className="mt-6 text-2xl font-bold tracking-tight">{bn ? 'আমি মেস ম্যানেজ করি' : 'I manage the mess'}</h2>
               <p className="mt-3 text-sm leading-7 text-muted">{bn ? 'একটি ফ্ল্যাট তৈরি করুন, মেম্বার ইনভাইট করুন, মিল-খরচ-জমা ট্র্যাক করুন এবং মাস শেষে সেটেলমেন্ট বন্ধ করুন।' : 'Create one flat, invite members, track meals, expenses and contributions, then close the monthly settlement.'}</p>
