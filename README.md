@@ -39,7 +39,7 @@ We optimise for trust, clarity, and the way Bangladeshi messes actually work —
 | **Holidays** | Mark mess-closed days so opt-out meals don’t create phantom charges |
 | **Vacation** | Member leave / meal freeze with manager approval for longer breaks |
 | **Guest meals** | Configurable host/shared/free-limit policy with optional manager approval |
-| **Billing** | ৳99/month Manager Plan with manual bKash, Nagad, and Rocket payment verification |
+| **Billing** | ৳49/month Manager Plan with manual bKash, Nagad, and Rocket payment verification |
 | **Subscription recovery** | 7-day grace, read-only recovery, export/support takeover requests |
 | **Meal reminders** | In-app lunch/dinner reminders with quiet hours and Bangla/English preferences |
 | **Festival mode** | Regular/short/Eid/festival cycle types, pause meals, festival expenses |
