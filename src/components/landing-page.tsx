@@ -2,12 +2,9 @@
 
 import Link from 'next/link'
 import { ArrowRight, BarChart3, CalendarCheck2, Check, CirclePlay, ReceiptText, ShieldCheck, Sparkles, Utensils, WalletCards } from 'lucide-react'
+import { BrandLogoMark } from '@/components/brand-logo-mark'
 import { LanguageToggle, useI18n } from '@/components/language-provider'
 import { ThemeToggle } from '@/components/theme-toggle'
-
-function LogoMark({ size = 40 }: { size?: number }) {
-  return <span style={{ width: size, height: size }} className="grid shrink-0 place-items-center rounded-[30%] bg-gradient-to-br from-brand-green-2 to-brand-green text-white shadow-[0_10px_28px_rgba(16,185,129,.22)]"><Utensils size={Math.round(size * .45)} strokeWidth={2.2}/></span>
-}
 
 export default function LandingPage() {
   const { t, locale } = useI18n()
@@ -48,7 +45,7 @@ export default function LandingPage() {
     <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_12%_-6%,rgb(var(--brand-green)/.10),transparent_30rem),radial-gradient(circle_at_90%_12%,rgb(var(--brand-green)/.06),transparent_26rem)]" />
     <div className="relative mx-auto max-w-[1240px] px-4 py-4 sm:px-6 lg:px-8">
       <header className="sticky top-4 z-30 flex items-center justify-between rounded-2xl border border-line bg-surface/84 px-3.5 py-3 shadow-soft backdrop-blur-2xl sm:px-4">
-        <Link href="/" className="flex items-center gap-3"><LogoMark size={38}/><div><p className="text-sm font-black tracking-[-0.025em] text-main">MealHisab</p><p className="text-[9px] font-bold uppercase tracking-[0.19em] text-muted">Bangladesh</p></div></Link>
+        <Link href="/" className="flex items-center gap-3"><BrandLogoMark size={38}/><div><p className="text-sm font-black tracking-[-0.025em] text-main">MealHisab</p><p className="text-[9px] font-bold uppercase tracking-[0.19em] text-muted">Bangladesh</p></div></Link>
         <div className="flex items-center gap-1.5 sm:gap-2">
           <ThemeToggle compact />
           <LanguageToggle />
@@ -70,7 +67,7 @@ export default function LandingPage() {
         <div className="relative">
           <div className="absolute -inset-8 rounded-[40px] bg-brand-green/8 blur-3xl"/>
           <div className="relative overflow-hidden rounded-[28px] border border-line bg-surface shadow-[var(--shadow-elevated)]">
-            <div className="flex items-center justify-between border-b border-line px-5 py-4 sm:px-6"><div className="flex items-center gap-3"><LogoMark size={34}/><div><p className="text-sm font-bold text-main">Mirpur Mess</p><p className="mt-0.5 text-[11px] text-muted">01 Aug — 31 Aug</p></div></div><span className="rounded-full bg-brand-green/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-brand-green">{copy.live}</span></div>
+            <div className="flex items-center justify-between border-b border-line px-5 py-4 sm:px-6"><div className="flex items-center gap-3"><BrandLogoMark size={34}/><div><p className="text-sm font-bold text-main">Mirpur Mess</p><p className="mt-0.5 text-[11px] text-muted">01 Aug — 31 Aug</p></div></div><span className="rounded-full bg-brand-green/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-brand-green">{copy.live}</span></div>
             <div className="grid grid-cols-3 gap-px bg-line"><div className="bg-surface p-4 sm:p-5"><p className="text-[10px] font-semibold text-muted">{t('landing.previewMeals')}</p><p className="mt-2 text-xl font-black text-main sm:text-2xl">99</p></div><div className="bg-surface p-4 sm:p-5"><p className="text-[10px] font-semibold text-muted">{t('landing.previewFood')}</p><p className="mt-2 text-xl font-black text-main sm:text-2xl">৳5,247</p></div><div className="bg-surface p-4 sm:p-5"><p className="text-[10px] font-semibold text-muted">{t('landing.previewRate')}</p><p className="mt-2 text-xl font-black text-brand-green sm:text-2xl">৳53</p></div></div>
             <div className="p-5 sm:p-6"><div className="mb-4 flex items-center justify-between"><p className="text-sm font-bold text-main">{copy.balance}</p><BarChart3 size={16} className="text-muted"/></div><div className="space-y-2">{[['Rahim Ahmed','+৳286',true],['Nabila Karim','-৳196',false],['Sajid Hasan','-৳537',false]].map(([name,balance,positive]) => <div key={String(name)} className="flex items-center justify-between rounded-xl bg-surface-2 px-3.5 py-3"><div className="flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-full bg-surface-3 text-[10px] font-bold text-main">{String(name).slice(0,1)}</span><span className="text-xs font-semibold text-main sm:text-sm">{name as string}</span></div><span className={`text-xs font-bold sm:text-sm ${positive ? 'text-brand-green' : 'text-danger'}`}>{balance as string}</span></div>)}</div></div>
           </div>
@@ -87,7 +84,7 @@ export default function LandingPage() {
         <div className="grid gap-3 sm:grid-cols-2">{[[Utensils,t('landing.featMeals')],[WalletCards,t('landing.featCont')],[ReceiptText,t('landing.featExp')],[CalendarCheck2,t('landing.featSet')]].map(([Icon,title],index) => { const I = Icon as typeof Utensils; return <div key={String(title)} className="rounded-2xl border border-line bg-surface p-5"><div className="flex items-center justify-between"><span className="grid h-9 w-9 place-items-center rounded-xl bg-surface-2 text-brand-green"><I size={16}/></span><span className="text-xs font-black text-line-strong">0{index+1}</span></div><p className="mt-5 text-sm font-bold text-main">{title as string}</p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-2"><div className="h-full rounded-full bg-brand-green" style={{ width: `${40 + index * 16}%` }}/></div></div> })}</div>
       </section>
 
-      <section className="mb-10 overflow-hidden rounded-[30px] border border-line bg-surface shadow-soft"><div className="grid gap-8 p-7 sm:p-9 lg:grid-cols-[1fr_auto] lg:items-center lg:p-11"><div><div className="flex items-center gap-3"><LogoMark size={40}/><span className="text-sm font-black text-main">MealHisab BD</span></div><h2 className="mt-6 max-w-2xl text-3xl font-black tracking-[-0.035em] text-main sm:text-4xl">{copy.cta}</h2><p className="mt-3 max-w-xl text-sm leading-6 text-muted">{copy.ctaSub}</p></div><div className="flex flex-col gap-2 sm:flex-row lg:flex-col"><Link href="/register/manager" className="btn-primary">{copy.start}<ArrowRight size={15}/></Link><Link href="/join" className="btn-secondary">{copy.join}</Link></div></div></section>
+      <section className="mb-10 overflow-hidden rounded-[30px] border border-line bg-surface shadow-soft"><div className="grid gap-8 p-7 sm:p-9 lg:grid-cols-[1fr_auto] lg:items-center lg:p-11"><div><div className="flex items-center gap-3"><BrandLogoMark size={40}/><span className="text-sm font-black text-main">MealHisab BD</span></div><h2 className="mt-6 max-w-2xl text-3xl font-black tracking-[-0.035em] text-main sm:text-4xl">{copy.cta}</h2><p className="mt-3 max-w-xl text-sm leading-6 text-muted">{copy.ctaSub}</p></div><div className="flex flex-col gap-2 sm:flex-row lg:flex-col"><Link href="/register/manager" className="btn-primary">{copy.start}<ArrowRight size={15}/></Link><Link href="/join" className="btn-secondary">{copy.join}</Link></div></div></section>
 
       <footer className="flex flex-col gap-4 border-t border-line py-8 text-xs text-muted sm:flex-row sm:items-center sm:justify-between"><p>© {new Date().getFullYear()} MealHisab BD. {t('landing.footer')}</p><div className="flex flex-wrap gap-5"><Link href="/demo" className="transition hover:text-main">{t('nav.tryDemo')}</Link><Link href="/login" className="transition hover:text-main">{t('nav.logIn')}</Link><Link href="/account-type" className="transition hover:text-main">{t('nav.getStarted')}</Link></div></footer>
     </div>
