@@ -6,7 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react'
 import {
@@ -19,6 +19,7 @@ import {
 } from '@/lib/i18n'
 
 const STORAGE_KEY = 'mealhisab-locale'
+const LOCALE_EVENT = 'mealhisab-locale-change'
 
 type I18nContextValue = {
   locale: Locale
@@ -39,24 +40,29 @@ function readStoredLocale(): Locale {
   return defaultLocale
 }
 
+function subscribeLocale(onStoreChange: () => void) {
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === STORAGE_KEY) onStoreChange()
+  }
+  window.addEventListener('storage', handleStorage)
+  window.addEventListener(LOCALE_EVENT, onStoreChange)
+  return () => {
+    window.removeEventListener('storage', handleStorage)
+    window.removeEventListener(LOCALE_EVENT, onStoreChange)
+  }
+}
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(defaultLocale)
-  const [ready, setReady] = useState(false)
+  const locale = useSyncExternalStore(subscribeLocale, readStoredLocale, () => defaultLocale)
 
   useEffect(() => {
-    setLocaleState(readStoredLocale())
-    setReady(true)
-  }, [])
-
-  useEffect(() => {
-    if (!ready) return
     document.documentElement.lang = locale === 'bn' ? 'bn' : 'en'
-  }, [locale, ready])
+  }, [locale])
 
   const setLocale = useCallback((next: Locale) => {
-    setLocaleState(next)
     try {
       window.localStorage.setItem(STORAGE_KEY, next)
+      window.dispatchEvent(new Event(LOCALE_EVENT))
     } catch {
       /* ignore */
     }
