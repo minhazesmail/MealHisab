@@ -1,6 +1,5 @@
 'use client'
 
-import type { ReactNode } from 'react'
 import { useI18n } from '@/components/language-provider'
 import { InviteSharePanel } from '@/components/invite-share'
 
