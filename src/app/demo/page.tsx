@@ -19,6 +19,7 @@ import {
   Users,
   WalletCards,
 } from 'lucide-react'
+import { BrandLogoMark } from '@/components/brand-logo-mark'
 import { LanguageToggle, useI18n } from '@/components/language-provider'
 
 type Tab = 'overview' | 'meals' | 'calendar' | 'expenses' | 'contributions' | 'operations' | 'reports'
@@ -93,17 +94,6 @@ function dateInDhaka() {
 
 function money(value: number) {
   return `৳${value.toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
-
-function BrandMark() {
-  return (
-    <svg width="34" height="34" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <rect x="2" y="2" width="44" height="44" rx="14" fill="url(#demo-logo)" />
-      <path d="M14 16.5C17.5 13.5 24 13.2 28.7 16.1C32.5 18.4 35 22 34.2 26.1C33.3 30.9 28.8 34 23 34C17.2 34 13.8 30.8 13.8 26.1C13.8 22.2 16.2 19.1 20.2 17.3" stroke="white" strokeWidth="2.4" strokeLinecap="round" />
-      <path d="M21 21.2H31.8M21 26H29M21 30.8H27" stroke="white" strokeWidth="2.1" strokeLinecap="round" opacity=".92" />
-      <defs><linearGradient id="demo-logo" x1="8" y1="7" x2="41" y2="44" gradientUnits="userSpaceOnUse"><stop stopColor="#39FF88" /><stop offset="1" stopColor="#19D96B" /></linearGradient></defs>
-    </svg>
-  )
 }
 
 export default function DemoPage() {
@@ -232,7 +222,7 @@ export default function DemoPage() {
       <header className="sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
-            <BrandMark />
+            <BrandLogoMark size={34} />
             <div><p className="text-sm font-black">MealHisab</p><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-green">{t('demo.badge')}</p></div>
           </div>
           <div className="flex items-center gap-2">

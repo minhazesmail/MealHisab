@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Sparkles } from 'lucide-react'
+import { BrandLogoMark } from '@/components/brand-logo-mark'
 import { LanguageToggle, AppNav, MobileNav } from '@/components/app-shell'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { SignOutButton } from '@/components/sign-out-button'
@@ -49,8 +49,8 @@ export default async function AppLayout({ children }: Readonly<{ children: React
         <header className="sticky top-0 z-20 border-b border-line/80 bg-canvas/80 backdrop-blur-2xl">
           <div className="mx-auto flex max-w-[1480px] items-center justify-between gap-4 px-4 py-3 sm:px-7 lg:px-9">
             <div className="flex min-w-0 items-center gap-3.5">
-              <Link href="/dashboard" aria-label="MealHisab home" className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-surface shadow-sm transition hover:-translate-y-0.5 hover:border-line-strong">
-                <Sparkles size={17} className="text-brand-green" />
+              <Link href="/dashboard" aria-label="MealHisab home" className="group shrink-0 rounded-xl transition hover:-translate-y-0.5">
+                <BrandLogoMark size={40} />
               </Link>
               <div className="min-w-0">
                 <p className="truncate text-[15px] font-bold tracking-[-0.02em] text-main">{flatName || 'MealHisab'}</p>
