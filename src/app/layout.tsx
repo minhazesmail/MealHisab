@@ -9,13 +9,27 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
 }
 
+const themeScript = `(() => {
+  try {
+    const saved = localStorage.getItem('mealhisab-theme');
+    const theme = saved === 'light' || saved === 'dark'
+      ? saved
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    root.classList.toggle('dark', theme === 'dark');
+    root.style.colorScheme = theme;
+  } catch {}
+})();`
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
       <body>
         <LanguageProvider>
           {children}
-          <Toaster position="top-right" richColors closeButton theme="dark" />
+          <Toaster position="top-right" richColors closeButton theme="system" />
         </LanguageProvider>
       </body>
     </html>
