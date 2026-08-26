@@ -130,11 +130,11 @@ select results_eq(
 );
 
 reset role;
-select extensions.like(
-  pg_get_functiondef('private.close_cycle_internal(uuid)'::regprocedure),
-  '%opening_balance+contribution-meal_cost-guest_charge%'::text,
-  'guest charges reduce closing balance in cycle close'::text
+select results_eq(
+  $$select position('opening_balance+contribution-meal_cost-guest_charge' in pg_get_functiondef('private.close_cycle_internal(uuid)'::regprocedure)) > 0$$,
+  array[true],
+  'guest charges reduce closing balance in cycle close'
 );
 
-select * from extensions.finish();
+select * from finish();
 rollback;
