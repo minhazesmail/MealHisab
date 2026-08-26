@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Utensils } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { LanguageToggle, AppNav, MobileNav } from '@/components/app-shell'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { SignOutButton } from '@/components/sign-out-button'
 import { NotificationBell } from '@/components/notification-bell'
 import { SubscriptionGraceBanner } from '@/components/subscription-grace-banner'
@@ -42,18 +43,31 @@ export default async function AppLayout({ children }: Readonly<{ children: React
 
   return <div className="min-h-screen bg-canvas text-main">
     {banner}
-    <div className="flex min-h-screen"><AppNav/><div className="min-w-0 flex-1">
-      <header className="sticky top-0 z-20 border-b border-line bg-canvas/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-3.5">
-          <div className="flex min-w-0 items-center gap-3">
-            <Link href="/dashboard" aria-label="MealHisab home" className="group shrink-0 rounded-xl p-1.5 transition hover:bg-surface-2"><span className="flex h-10 w-10 items-center justify-center rounded-xl border border-line-strong bg-surface-3 text-brand-green shadow-glow"><Utensils size={18}/></span></Link>
-            <div className="min-w-0"><p className="truncate text-sm font-black tracking-tight text-main">{flatName || 'MealHisab'}</p><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">Mess workspace</p></div>
+    <div className="flex min-h-screen">
+      <AppNav/>
+      <div className="min-w-0 flex-1">
+        <header className="sticky top-0 z-20 border-b border-line/80 bg-canvas/80 backdrop-blur-2xl">
+          <div className="mx-auto flex max-w-[1480px] items-center justify-between gap-4 px-4 py-3 sm:px-7 lg:px-9">
+            <div className="flex min-w-0 items-center gap-3.5">
+              <Link href="/dashboard" aria-label="MealHisab home" className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-surface shadow-sm transition hover:-translate-y-0.5 hover:border-line-strong">
+                <Sparkles size={17} className="text-brand-green" />
+              </Link>
+              <div className="min-w-0">
+                <p className="truncate text-[15px] font-bold tracking-[-0.02em] text-main">{flatName || 'MealHisab'}</p>
+                <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Shared household ledger</p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+              <NotificationBell/>
+              <ThemeToggle compact />
+              <LanguageToggle/>
+              <form action={async () => { 'use server'; const s = await createClient(); await s.auth.signOut(); redirect('/login') }}><SignOutButton/></form>
+            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2"><NotificationBell/><LanguageToggle/><form action={async () => { 'use server'; const s = await createClient(); await s.auth.signOut(); redirect('/login') }}><SignOutButton/></form></div>
-        </div>
-      </header>
-      <main className="mx-auto max-w-7xl px-4 py-6 pb-28 sm:px-6 sm:py-8 lg:pb-8">{children}</main>
-    </div></div>
+        </header>
+        <main className="mx-auto max-w-[1480px] px-4 py-6 pb-28 sm:px-7 sm:py-8 lg:px-9 lg:pb-10">{children}</main>
+      </div>
+    </div>
     <MobileNav/>
   </div>
 }
