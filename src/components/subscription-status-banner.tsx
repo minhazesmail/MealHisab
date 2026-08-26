@@ -5,7 +5,7 @@ import Link from 'next/link'
 export function SubscriptionStatusBanner({ state, periodEnd, daysRemaining }: { state: 'active'|'grace'|'expired'; periodEnd: string | null; daysRemaining?: number | null }) {
   if (state === 'active') {
     if (!periodEnd) return null
-    const daysUntil = Math.ceil((new Date(periodEnd).getTime() - Date.now()) / 86400000)
+    const daysUntil = daysRemaining ?? Math.ceil((new Date(periodEnd).getTime() - new Date().getTime()) / 86400000)
     if (daysUntil > 7) return null
     return <div className="border-b border-amber-400/20 bg-amber-400/5 px-4 py-2.5 text-sm text-amber-200"><div className="mx-auto flex max-w-7xl items-center justify-between gap-3"><span>Your Manager Plan expires on {new Date(periodEnd).toLocaleDateString('en-BD')}. Renew to keep your flat active.</span><Link href="/settings" className="font-bold underline underline-offset-2">Renew</Link></div></div>
   }

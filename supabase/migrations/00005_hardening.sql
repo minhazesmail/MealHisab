@@ -162,9 +162,14 @@ create trigger sync_member_departure after update of status, left_at on public.f
 
 update public.cycle_members cm
    set active_to = fm.left_at
-  from public.cycles c
-  join public.flat_members fm on fm.flat_id = c.flat_id and fm.user_id = cm.user_id
- where cm.cycle_id = c.id and c.status = 'open' and fm.status = 'left' and fm.left_at is not null;
+  from public.cycles c,
+       public.flat_members fm
+ where cm.cycle_id = c.id
+   and fm.flat_id = c.flat_id
+   and fm.user_id = cm.user_id
+   and c.status = 'open'
+   and fm.status = 'left'
+   and fm.left_at is not null;
 
 create or replace function public.leave_flat(p_flat_id uuid)
 returns void language plpgsql security definer set search_path = '' as $$
@@ -261,95 +266,55 @@ begin
        and (cm.active_to is null or gs.d::date <= cm.active_to)
        and not exists (select 1 from public.cycle_closed_days cd where cd.cycle_id=p_cycle_id and cd.date=gs.d::date)
   ),
+  daily_meals as (
+    select md.user_id, md.service_date,
+      coalesce(max(ml.count) filter(where ml.meal_type='lunch'), case when md.meal_policy='opt_out' then 1 else 0 end)
+      + coalesce(max(ml.count) filter(where ml.meal_type='dinner'), case when md.meal_policy='opt_out' then 1 else 0 end)
+      + coalesce(max(ml.count) filter(where ml.meal_type='extra'), 0) meals
+    from member_days md
+    left join public.meal_logs ml on ml.cycle_id=p_cycle_id and ml.user_id=md.user_id and ml.date=md.service_date
+    group by md.user_id,md.service_date,md.meal_policy
+  ),
   meal_totals as (
-    select md.user_id,
-           sum(
-             coalesce(max(ml.count) filter (where ml.meal_type='lunch'), case when md.meal_policy='opt_out' then 1 else 0 end)
-             + coalesce(max(ml.count) filter (where ml.meal_type='dinner'), case when md.meal_policy='opt_out' then 1 else 0 end)
-             + coalesce(max(ml.count) filter (where ml.meal_type='extra'), 0)
-           )::integer as meals
-      from member_days md
-      left join public.meal_logs ml on ml.cycle_id=p_cycle_id and ml.user_id=md.user_id and ml.date=md.service_date
-     group by md.user_id
+    select user_id,sum(meals)::integer meals from daily_meals group by user_id
   ),
   contribution_totals as (
-    select user_id, coalesce(sum(amount),0)::numeric(12,2) contribution
-      from public.contributions where cycle_id=p_cycle_id group by user_id
+    select user_id,coalesce(sum(amount),0)::numeric(12,2) contribution from public.contributions where cycle_id=p_cycle_id group by user_id
   )
   insert into tmp_settlement(user_id,meals,contribution,opening_balance)
-  select mt.user_id, mt.meals, coalesce(ct.contribution,0), coalesce(cm.opening_balance,0)
+  select mt.user_id,mt.meals,coalesce(ct.contribution,0),coalesce(cm.opening_balance,0)
     from meal_totals mt
     join public.cycle_members cm on cm.cycle_id=p_cycle_id and cm.user_id=mt.user_id
     left join contribution_totals ct on ct.user_id=mt.user_id;
 
   select coalesce(sum(meals),0) into v_total_meals from tmp_settlement;
-  if v_total_meals = 0 and v_total_cost > 0 then raise exception 'cannot_close_cycle_with_expenses_and_zero_meals'; end if;
-  v_rate := case when v_total_meals = 0 then 0 else round(v_total_cost / v_total_meals,2) end;
-
-  update tmp_settlement set meal_cost = round(meals * v_rate,2);
-  select round(v_total_cost - coalesce(sum(meal_cost),0),2) into v_residual from tmp_settlement;
-  if v_residual <> 0 then
-    update tmp_settlement set meal_cost = round(meal_cost + v_residual,2)
-      where user_id = (select user_id from tmp_settlement order by user_id desc limit 1);
+  if v_total_meals=0 and v_total_cost>0 then raise exception 'cannot_close_cycle_with_expenses_and_zero_meals'; end if;
+  v_rate:=case when v_total_meals=0 then 0 else round(v_total_cost/v_total_meals,2) end;
+  update tmp_settlement set meal_cost=round(meals*v_rate,2);
+  select round(v_total_cost-coalesce(sum(meal_cost),0),2) into v_residual from tmp_settlement;
+  if v_residual<>0 then
+    update tmp_settlement
+       set meal_cost=round(meal_cost+v_residual,2)
+     where user_id=(select user_id from tmp_settlement order by meals desc,user_id desc limit 1);
   end if;
 
   insert into public.settlements(cycle_id,user_id,flat_id,total_meals,meal_cost,total_contribution,opening_balance,balance)
-  select p_cycle_id,user_id,v_flat,meals,meal_cost,contribution,opening_balance,
-         round(opening_balance + contribution - meal_cost,2)
+  select p_cycle_id,user_id,v_flat,meals,meal_cost,contribution,opening_balance,round(opening_balance+contribution-meal_cost,2)
     from tmp_settlement
-  on conflict(cycle_id,user_id) do update set
-    total_meals=excluded.total_meals,
-    meal_cost=excluded.meal_cost,
-    total_contribution=excluded.total_contribution,
-    opening_balance=excluded.opening_balance,
-    balance=excluded.balance;
+  on conflict(cycle_id,user_id) do update set total_meals=excluded.total_meals,meal_cost=excluded.meal_cost,total_contribution=excluded.total_contribution,opening_balance=excluded.opening_balance,balance=excluded.balance;
 
   update public.cycles set status='closed' where id=p_cycle_id;
-  v_next_start:=v_end+1; v_next_end:=(v_next_start+(v_end-v_start+1))-1;
+  v_next_start:=v_end+1;
+  v_next_end:=(v_next_start+(v_end-v_start+1))-1;
   insert into public.cycles(flat_id,start_date,end_date,status) values(v_flat,v_next_start,v_next_end,'open') returning id into v_next;
   insert into public.cycle_members(cycle_id,user_id,active_from,opening_balance)
-    select v_next,fm.user_id,greatest(v_next_start,fm.joined_at),coalesce(s.balance,0)
-      from public.flat_members fm
-      left join public.settlements s on s.cycle_id=p_cycle_id and s.user_id=fm.user_id
-     where fm.flat_id=v_flat and fm.status='active';
+  select v_next,fm.user_id,greatest(v_next_start,fm.joined_at::date),coalesce(s.balance,0)
+    from public.flat_members fm
+    left join public.settlements s on s.cycle_id=p_cycle_id and s.user_id=fm.user_id
+   where fm.flat_id=v_flat and fm.status='active';
 
-  insert into public.audit_logs(flat_id,actor_id,action,entity_type,entity_id,metadata)
-  values(v_flat,v_user,'cycle.closed','cycle',p_cycle_id,jsonb_build_object(
-    'next_cycle_id',v_next,'total_cost',v_total_cost,'total_meals',v_total_meals,'meal_rate',v_rate,'rounding_residual',v_residual
-  ));
   return v_next;
 end;
 $$;
 revoke all on function public.close_cycle(uuid) from public;
 grant execute on function public.close_cycle(uuid) to authenticated;
-
--- 9) Record a final payout to a member or collection from a member, with partial payment support.
-create or replace function public.record_settlement_payment(p_settlement_id uuid, p_amount numeric, p_note text default null)
-returns uuid language plpgsql security definer set search_path = '' as $$
-declare
-  v_user uuid := auth.uid(); v_settlement record; v_direction text; v_paid numeric(12,2); v_outstanding numeric(12,2); v_id uuid;
-begin
-  if v_user is null then raise exception 'not_authenticated'; end if;
-  if p_amount <= 0 then raise exception 'invalid_payment_amount'; end if;
-  select s.*, c.status as cycle_status into v_settlement
-    from public.settlements s join public.cycles c on c.id=s.cycle_id where s.id=p_settlement_id for update;
-  if v_settlement.id is null then raise exception 'settlement_not_found'; end if;
-  if not private.is_flat_manager(v_settlement.flat_id) then raise exception 'forbidden'; end if;
-  if v_settlement.balance = 0 then raise exception 'settlement_already_balanced'; end if;
-  v_direction := case when v_settlement.balance > 0 then 'payout' else 'collection' end;
-  select coalesce(sum(amount),0)::numeric(12,2) into v_paid from public.settlement_payments where settlement_id=p_settlement_id and direction=v_direction;
-  v_outstanding := round(abs(v_settlement.balance) - v_paid,2);
-  if p_amount > v_outstanding then raise exception 'payment_exceeds_outstanding_balance'; end if;
-  insert into public.settlement_payments(settlement_id,cycle_id,flat_id,user_id,direction,amount,note,recorded_by)
-  values(p_settlement_id,v_settlement.cycle_id,v_settlement.flat_id,v_settlement.user_id,v_direction,round(p_amount,2),nullif(trim(p_note),''),v_user)
-  returning id into v_id;
-  insert into public.audit_logs(flat_id,actor_id,action,entity_type,entity_id,metadata)
-  values(v_settlement.flat_id,v_user,'settlement.payment_recorded','settlement',p_settlement_id,jsonb_build_object('direction',v_direction,'amount',round(p_amount,2)));
-  return v_id;
-end;
-$$;
-revoke all on function public.record_settlement_payment(uuid,numeric,text) from public;
-grant execute on function public.record_settlement_payment(uuid,numeric,text) to authenticated;
-
--- Keep direct table updates from bypassing the safe payment RPC.
-drop policy if exists settlement_payments_insert_manager on public.settlement_payments;

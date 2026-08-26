@@ -1,7 +1,7 @@
 -- Manual Bangladesh payment MVP.
 -- Platform administrators approve or reject payment proofs; managers never self-approve.
 
-create or replace function private.is_platform_admin(p_user uuid default (select auth.uid()))
+create or replace function private.is_platform_admin(p_user uuid default auth.uid())
 returns boolean
 language sql
 stable

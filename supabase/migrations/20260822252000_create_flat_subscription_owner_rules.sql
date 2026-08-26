@@ -51,7 +51,7 @@ begin
     raise exception 'flat_name_required';
   end if;
 
-  v_code := upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 8));
+  v_code := upper(substr(encode(extensions.gen_random_bytes(8), 'hex'), 1, 8));
 
   insert into public.flats(
     name,

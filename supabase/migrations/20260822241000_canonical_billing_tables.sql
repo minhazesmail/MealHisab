@@ -111,8 +111,13 @@ $$;
 
 grant execute on function private.has_active_manager_plan(uuid) to authenticated;
 
+-- The legacy SSLCommerz migration defined this same signature with a text return
+-- value. PostgreSQL cannot change a function return type with CREATE OR REPLACE,
+-- so retire the legacy implementation before defining the canonical UUID-returning API.
+drop function if exists public.create_manager_payment(text,numeric);
+
 -- Create a payment request atomically. Gateway code receives only transaction_id.
-create or replace function public.create_manager_payment(
+create function public.create_manager_payment(
   p_plan_code text default 'manager_monthly',
   p_amount numeric default 99.00
 )

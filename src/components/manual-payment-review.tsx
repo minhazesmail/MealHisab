@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
-import { reviewManualManagerPayment } from '@/app/billing-actions'
+import { reviewPayment } from '@/app/admin-actions'
 
 export function ManualPaymentReview({ rows }: { rows: Array<{ id: string; userId: string; amount: number; method: string; senderNumber: string; transactionId: string; note: string | null; createdAt: string }> }) {
   const [pending, start] = useTransition()
@@ -16,11 +16,11 @@ export function ManualPaymentReview({ rows }: { rows: Array<{ id: string; userId
       </div>
       {row.note && <p className="rounded-xl border border-line bg-surface-2 p-3 text-sm text-muted">{row.note}</p>}
       <div className="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-end sm:justify-between">
-        <form action={(formData) => start(() => reviewManualManagerPayment(formData))} className="flex gap-2">
+        <form action={(formData) => start(() => reviewPayment(formData))} className="flex gap-2">
           <input type="hidden" name="payment_id" value={row.id}/><input type="hidden" name="decision" value="approved"/>
           <button className="btn-primary" disabled={pending}>Approve</button>
         </form>
-        <form action={(formData) => start(() => reviewManualManagerPayment(formData))} className="flex flex-1 gap-2 sm:justify-end">
+        <form action={(formData) => start(() => reviewPayment(formData))} className="flex flex-1 gap-2 sm:justify-end">
           <input type="hidden" name="payment_id" value={row.id}/><input type="hidden" name="decision" value="rejected"/>
           <input name="reject_reason" className="input max-w-sm" placeholder="Reason for rejection" required/>
           <button className="btn-secondary text-danger" disabled={pending}>Reject</button>

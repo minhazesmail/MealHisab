@@ -14,7 +14,7 @@ export function InviteCodeManager({ flatId, rows }: { flatId: string; rows: Invi
   const [pending, start] = useTransition()
   const [error, setError] = useState('')
   const [latest, setLatest] = useState<string | null>(null)
-  const now = Date.now()
+  const now = new Date().getTime()
   const currentMonth = useMemo(() => dhakaMonthKey(), [])
   const generatedThisMonth = rows.filter((row) => row.createdMonth?.slice(0, 7) === currentMonth).length
   const remaining = Math.max(0, 10 - generatedThisMonth)

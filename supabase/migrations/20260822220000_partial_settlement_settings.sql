@@ -137,5 +137,5 @@ $$;
 
 revoke all on function public.record_settlement_payment(uuid,numeric,text) from public;
 grant execute on function public.record_settlement_payment(uuid,numeric,text) to authenticated;
-grant execute on function public.update_settlement_payment_settings(uuid,boolean,boolean) from public;
+revoke all on function public.update_settlement_payment_settings(uuid,boolean,boolean) from public;
 grant execute on function public.update_settlement_payment_settings(uuid,boolean,boolean) to authenticated;

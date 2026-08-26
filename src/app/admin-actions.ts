@@ -24,7 +24,9 @@ export async function reviewPayment(formData: FormData) {
   const reason = z.string().trim().max(500).optional().parse(String(formData.get('reject_reason') ?? '') || undefined)
   const { error } = await s.rpc('review_manager_payment_request', { p_payment_request_id: paymentId, p_decision: decision, p_reject_reason: reason ?? null })
   if (error) throw extractDbError(error, 'reviewPayment')
-  revalidatePath('/admin'); revalidatePath('/billing')
+  revalidatePath('/admin')
+  revalidatePath('/admin/payments')
+  revalidatePath('/billing')
 }
 
 export async function extendSubscription(formData: FormData) {

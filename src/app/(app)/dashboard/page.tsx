@@ -4,6 +4,7 @@ import { calculateMealRate } from '@/domain/accounting'
 import { createClient } from '@/lib/supabase/server'
 import { fetchAllRows } from '@/lib/supabase/pagination'
 import { DashboardClient } from '@/components/dashboard-client'
+import { DashboardState } from '@/components/dashboard-state'
 
 type CycleMemberRow = {
   user_id: string
@@ -29,16 +30,17 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .eq('status', 'active')
     .maybeSingle()
-  if (membershipError) return <div className="card text-sm text-red-600">Could not load your membership.</div>
+  if (membershipError) return <DashboardState kind="membership_error" />
   if (!membership) redirect('/onboarding')
 
+  const canManage = membership.role === 'admin' || membership.role === 'manager'
   const { data: flat, error: flatError } = await supabase
     .from('flats')
     .select('id,name,invite_code,meal_policy')
     .eq('id', membership.flat_id)
     .maybeSingle()
-  if (flatError) return <div className="card text-sm text-red-600">Could not load the flat.</div>
-  if (!flat) return <div className="card">Flat not found.</div>
+  if (flatError) return <DashboardState kind="flat_error" canManage={canManage} />
+  if (!flat) return <DashboardState kind="flat_missing" canManage={canManage} />
 
   const { data: cycle, error: cycleError } = await supabase
     .from('cycles')
@@ -48,8 +50,14 @@ export default async function DashboardPage() {
     .order('start_date', { ascending: false })
     .limit(1)
     .maybeSingle()
-  if (cycleError) return <div className="card text-sm text-red-600">Could not load the current cycle.</div>
-  if (!cycle) return <div className="card">No open cycle.</div>
+  if (cycleError) return <DashboardState kind="cycle_error" canManage={canManage} />
+  if (!cycle) return <DashboardState kind="no_cycle" canManage={canManage} />
+
+  let rows: DashboardMember[] = []
+  let groceryCost = 0
+  let totalShared = 0
+  let totalMeals = 0
+  let rate = 0
 
   try {
     const [members, logs, expenses, contributions] = await Promise.all([
@@ -70,48 +78,44 @@ export default async function DashboardPage() {
       ),
     ])
 
-    const typedMembers = members
-    const typedLogs = logs
-    const typedExpenses = expenses
-    const typedContributions = contributions
-    const groceryCost = typedExpenses
+    groceryCost = expenses
       .filter((e) => e.category === 'grocery')
-      .reduce((s, e) => s + Number(e.amount), 0)
-    const totalShared = typedExpenses.reduce((s, e) => s + Number(e.amount), 0)
-    const rows: DashboardMember[] = buildDashboardMembers({
+      .reduce((sum, expense) => sum + Number(expense.amount), 0)
+    totalShared = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0)
+    rows = buildDashboardMembers({
       flat: { meal_policy: flat.meal_policy },
       cycle: { start_date: cycle.start_date, end_date: cycle.end_date },
-      members: typedMembers,
-      logs: typedLogs,
-      contributions: typedContributions,
+      members,
+      logs,
+      contributions,
       totalCost: totalShared,
     })
-    const totalMeals = rows.reduce((s, r) => s + r.meals, 0)
-    const rate = calculateMealRate(totalShared, totalMeals)
-
-    return (
-      <DashboardClient
-        flatName={flat.name}
-        inviteCode={flat.invite_code}
-        mealPolicy={flat.meal_policy}
-        cycleStart={cycle.start_date}
-        cycleEnd={cycle.end_date}
-        totalMeals={totalMeals}
-        foodCost={groceryCost}
-        rate={rate}
-        totalShared={totalShared}
-        rows={rows.map((r) => ({
-          id: r.id,
-          name: r.name,
-          meals: r.meals,
-          mealCost: r.mealCost,
-          contribution: r.contribution,
-          balance: r.balance,
-        }))}
-      />
-    )
+    totalMeals = rows.reduce((sum, row) => sum + row.meals, 0)
+    rate = calculateMealRate(totalShared, totalMeals)
   } catch (error) {
     console.error('[MealHisab][dashboard-pagination]', error)
-    return <div className="card text-sm text-red-600">Could not load the complete dashboard data. Please try again.</div>
+    return <DashboardState kind="data_error" canManage={canManage} />
   }
+
+  return (
+    <DashboardClient
+      flatName={flat.name}
+      inviteCode={flat.invite_code}
+      mealPolicy={flat.meal_policy}
+      cycleStart={cycle.start_date}
+      cycleEnd={cycle.end_date}
+      totalMeals={totalMeals}
+      foodCost={groceryCost}
+      rate={rate}
+      totalShared={totalShared}
+      rows={rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        meals: row.meals,
+        mealCost: row.mealCost,
+        contribution: row.contribution,
+        balance: row.balance,
+      }))}
+    />
+  )
 }

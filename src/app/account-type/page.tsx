@@ -1,20 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Building2, Check, CreditCard, KeyRound, ShieldCheck, Users } from 'lucide-react'
-import { LanguageToggle } from '@/components/language-provider'
-
-const universities = [
-  ['NSU', 'North South University'],
-  ['BRACU', 'BRAC University'],
-  ['AIUB', 'AIUB'],
-  ['IUB', 'Independent University, Bangladesh'],
-  ['UIU', 'United International University'],
-  ['DIU', 'Daffodil International University'],
-  ['DU', 'University of Dhaka'],
-  ['CU', 'University of Chittagong'],
-  ['GUB', 'Green University of Bangladesh'],
-]
+import { ArrowRight, Building2, Check, KeyRound, ShieldCheck, Users } from 'lucide-react'
+import { LanguageToggle, useI18n } from '@/components/language-provider'
 
 function BrandMark() {
   return (
@@ -28,69 +16,68 @@ function BrandMark() {
   )
 }
 
-function UniversityTrustBanner() {
-  return (
-    <section className="mt-8 overflow-hidden rounded-[30px] border border-brand-green/20 bg-gradient-to-br from-brand-green/[0.08] via-surface to-surface-2 p-5 shadow-soft sm:p-7" aria-label="University community">
-      <div className="flex flex-col items-center text-center">
-        <span className="inline-flex items-center rounded-full border border-brand-green/20 bg-brand-green/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-brand-green">Built for student life</span>
-        <h2 className="mt-3 text-xl font-black tracking-tight sm:text-2xl">Proudly serving students from leading universities across Bangladesh</h2>
-        <p className="mt-2 max-w-2xl text-xs leading-6 text-muted sm:text-sm">MealHisab helps students keep shared flats, messes and monthly expenses simple, transparent and fair.</p>
-      </div>
-      <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-9">
-        {universities.map(([shortName, name]) => (
-          <div key={shortName} title={name} className="group flex min-h-[84px] flex-col items-center justify-center rounded-2xl border border-line bg-surface/90 px-2 py-3 text-center transition hover:-translate-y-0.5 hover:border-brand-green/30 hover:bg-surface-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand-green/20 bg-brand-green/10 text-[11px] font-black tracking-tight text-brand-green transition group-hover:bg-brand-green/15">{shortName}</div>
-            <span className="mt-2 line-clamp-2 text-[9px] font-semibold leading-4 text-muted">{name}</span>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
 export default function AccountTypePage() {
+  const { locale } = useI18n()
+  const bn = locale === 'bn'
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-canvas px-4 py-8 text-main sm:py-12">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[700px] bg-[radial-gradient(circle_at_20%_5%,_rgba(57,255,136,.15),_transparent_34%),radial-gradient(circle_at_88%_18%,_rgba(25,217,107,.10),_transparent_30%)]" />
-      <div className="relative mx-auto max-w-5xl">
-        <div className="mb-8 flex items-center justify-between">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[640px] bg-[radial-gradient(circle_at_20%_5%,_rgba(57,255,136,.15),_transparent_34%),radial-gradient(circle_at_88%_18%,_rgba(25,217,107,.10),_transparent_30%)]" />
+      <div className="relative mx-auto max-w-4xl">
+        <div className="mb-10 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3"><BrandMark /><div><div className="text-sm font-black tracking-tight sm:text-base">MealHisab</div><div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">Bangladesh</div></div></Link>
           <LanguageToggle />
         </div>
 
-        <div className="mb-8 rounded-2xl border border-brand-green/30 bg-gradient-to-r from-brand-green/10 via-brand-green/[0.06] to-transparent px-4 py-4 shadow-soft sm:px-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-brand-green">MealHisab pricing</p><p className="mt-1 text-base font-black text-main">Manager Plan ৳99/month · Members ৳0</p><p className="mt-1 text-xs leading-5 text-muted">One manager subscription runs the flat. Members join free with a valid Flat Code.</p></div><div className="flex flex-wrap gap-2 text-xs font-bold"><span className="rounded-full border border-brand-green/20 bg-brand-green/10 px-3 py-1.5 text-brand-green">10 invite codes/month</span><span className="rounded-full bg-brand-green px-3 py-1.5 text-black">Members join free</span></div></div></div>
+        <header className="mx-auto max-w-2xl text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-green">{bn ? 'শুরু করার আগে' : 'Before you continue'}</p>
+          <h1 className="mt-3 text-4xl font-black tracking-[-0.04em] sm:text-5xl">{bn ? 'আপনি মেস ম্যানেজ করেন, নাকি মেম্বার?' : 'Do you manage the mess, or are you joining one?'}</h1>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-muted sm:text-base">{bn ? 'ম্যানেজার একটি ফ্ল্যাট চালানোর জন্য ৳99/মাস দেয়। মেম্বাররা ফ্ল্যাট কোড দিয়ে ফ্রি যোগ দেয়।' : 'Managers pay ৳99/month to run one flat. Members join an existing flat for free with a Flat Code.'}</p>
+        </header>
 
-        <header className="mx-auto max-w-2xl text-center"><p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-green">Welcome to MealHisab BD</p><h1 className="mt-3 text-4xl font-black tracking-[-0.04em] sm:text-5xl">How do you want to continue?</h1><p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-muted sm:text-base">Choose your role. Managers subscribe for ৳99/month; members join an existing flat completely free.</p></header>
-
-        <section className="mt-10 grid gap-5 md:grid-cols-2" aria-label="Signup options">
+        <section className="mt-10 grid gap-5 md:grid-cols-2" aria-label={bn ? 'অ্যাকাউন্ট টাইপ' : 'Account type'}>
           <Link href="/register/manager" className="group relative overflow-hidden rounded-[28px] border border-brand-green/30 bg-surface p-6 shadow-soft transition duration-200 hover:-translate-y-1 hover:border-brand-green/60 hover:shadow-glow sm:p-7">
             <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-brand-green/10 blur-3xl" />
             <div className="relative">
-              <div className="flex items-start justify-between gap-4"><div className="rounded-2xl bg-brand-green/15 p-3.5 text-brand-green"><Building2 size={24} /></div><span className="rounded-full border border-brand-green/25 bg-brand-green/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-brand-green">Paid manager plan</span></div>
-              <h2 className="mt-6 text-2xl font-bold tracking-tight">Register as Flat Manager</h2>
-              <p className="mt-3 text-sm leading-7 text-muted">Create and manage one mess/shared flat, invite members, track meals and expenses, and close monthly settlements.</p>
-              <div className="mt-5 rounded-2xl border border-brand-green/20 bg-surface-2 p-4"><div className="flex items-end justify-between gap-4"><div><p className="text-xs text-muted">Manager subscription</p><p className="mt-1 text-2xl font-black text-main">৳99<span className="ml-1 text-xs font-medium text-muted">/month</span></p></div><CreditCard size={20} className="text-brand-green" /></div><div className="mt-3 grid gap-2 text-xs text-muted sm:grid-cols-2"><span className="inline-flex items-center gap-2"><Check size={13} className="text-brand-green" /> 1 flat</span><span className="inline-flex items-center gap-2"><Check size={13} className="text-brand-green" /> 10 invite codes/month</span><span className="inline-flex items-center gap-2"><Check size={13} className="text-brand-green" /> Meal + expense tracking</span><span className="inline-flex items-center gap-2"><Check size={13} className="text-brand-green" /> Settlements + reports</span></div></div>
-              <span className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-green px-5 py-3.5 text-sm font-bold text-black shadow-glow transition group-hover:bg-brand-green-2">Start as Manager <ArrowRight size={17} /></span><p className="mt-3 text-center text-[11px] text-muted">Verify with OTP • Pay by bKash / Nagad / Rocket</p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="rounded-2xl bg-brand-green/15 p-3.5 text-brand-green"><Building2 size={24} /></div>
+                <span className="rounded-full border border-brand-green/25 bg-brand-green/10 px-3 py-1 text-[11px] font-bold text-brand-green">৳99 / {bn ? 'মাস' : 'month'}</span>
+              </div>
+              <h2 className="mt-6 text-2xl font-bold tracking-tight">{bn ? 'আমি মেস ম্যানেজ করি' : 'I manage the mess'}</h2>
+              <p className="mt-3 text-sm leading-7 text-muted">{bn ? 'একটি ফ্ল্যাট তৈরি করুন, মেম্বার ইনভাইট করুন, মিল-খরচ-জমা ট্র্যাক করুন এবং মাস শেষে সেটেলমেন্ট বন্ধ করুন।' : 'Create one flat, invite members, track meals, expenses and contributions, then close the monthly settlement.'}</p>
+              <div className="mt-5 space-y-2 text-sm text-muted">
+                <span className="flex items-center gap-2"><Check size={15} className="text-brand-green" /> {bn ? '১টি ফ্ল্যাট' : '1 flat'}</span>
+                <span className="flex items-center gap-2"><Check size={15} className="text-brand-green" /> {bn ? 'প্রতি মাসে ১০টি ইনভাইট কোড' : '10 invite codes each month'}</span>
+                <span className="flex items-center gap-2"><ShieldCheck size={15} className="text-brand-green" /> {bn ? 'ইমেইল OTP দিয়ে ভেরিফাই' : 'Verify with email OTP'}</span>
+              </div>
+              <span className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-green px-5 py-3.5 text-sm font-bold text-black shadow-glow transition group-hover:bg-brand-green-2">{bn ? 'ম্যানেজার হিসেবে শুরু করুন' : 'Start as Manager'} <ArrowRight size={17} /></span>
             </div>
           </Link>
 
           <Link href="/join" className="group relative overflow-hidden rounded-[28px] border border-line bg-surface p-6 shadow-soft transition duration-200 hover:-translate-y-1 hover:border-line-strong sm:p-7">
             <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-white/[0.03] blur-3xl" />
             <div className="relative">
-              <div className="flex items-start justify-between gap-4"><div className="rounded-2xl bg-surface-3 p-3.5 text-brand-green"><Users size={24} /></div><span className="rounded-full border border-brand-green/20 bg-brand-green/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-brand-green">৳0 for members</span></div>
-              <h2 className="mt-6 text-2xl font-bold tracking-tight">Join with Flat Code</h2>
-              <p className="mt-3 text-sm leading-7 text-muted">Your mess manager pays for the flat. Enter the valid invite code they gave you and join without buying a subscription.</p>
-              <div className="mt-5 rounded-2xl border border-line bg-surface-2 p-4"><p className="text-xs text-muted">Free member signup</p><div className="mt-2 space-y-2 text-xs text-muted"><span className="flex items-center gap-2"><KeyRound size={13} className="text-brand-green" /> Valid Flat Code</span><span className="flex items-center gap-2"><ShieldCheck size={13} className="text-brand-green" /> Email OTP verification</span><span className="flex items-center gap-2"><Check size={13} className="text-brand-green" /> No monthly fee</span></div></div>
-              <span className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-line-strong bg-surface-2 px-5 py-3.5 text-sm font-bold text-brand-green transition group-hover:bg-surface-3">Join Free <ArrowRight size={17} /></span><p className="mt-3 text-center text-[11px] text-muted">Members pay ৳0 • Phone OTP optional</p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="rounded-2xl bg-surface-3 p-3.5 text-brand-green"><Users size={24} /></div>
+                <span className="rounded-full border border-brand-green/20 bg-brand-green/10 px-3 py-1 text-[11px] font-bold text-brand-green">৳0</span>
+              </div>
+              <h2 className="mt-6 text-2xl font-bold tracking-tight">{bn ? 'আমি আমার মেসে যোগ দিচ্ছি' : 'I am joining my mess'}</h2>
+              <p className="mt-3 text-sm leading-7 text-muted">{bn ? 'আপনার ম্যানেজার যে ফ্ল্যাট কোড দিয়েছেন সেটি ব্যবহার করুন। কোনো সাবস্ক্রিপশন লাগবে না।' : 'Use the Flat Code from your manager. You do not need your own paid subscription.'}</p>
+              <div className="mt-5 space-y-2 text-sm text-muted">
+                <span className="flex items-center gap-2"><KeyRound size={15} className="text-brand-green" /> {bn ? 'ভ্যালিড ফ্ল্যাট কোড লাগবে' : 'Valid Flat Code required'}</span>
+                <span className="flex items-center gap-2"><ShieldCheck size={15} className="text-brand-green" /> {bn ? 'ইমেইল OTP ভেরিফিকেশন' : 'Email OTP verification'}</span>
+                <span className="flex items-center gap-2"><Check size={15} className="text-brand-green" /> {bn ? 'মাসিক ফি নেই' : 'No monthly fee'}</span>
+              </div>
+              <span className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-line-strong bg-surface-2 px-5 py-3.5 text-sm font-bold text-brand-green transition group-hover:bg-surface-3">{bn ? 'ফ্ল্যাট কোড দিয়ে যোগ দিন' : 'Join with Flat Code'} <ArrowRight size={17} /></span>
             </div>
           </Link>
         </section>
 
-        <div className="mt-7 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border border-line bg-surface/70 p-4 text-center"><p className="text-lg font-black text-brand-green">৳99</p><p className="mt-1 text-xs text-muted">manager plan / month</p></div><div className="rounded-2xl border border-line bg-surface/70 p-4 text-center"><p className="text-lg font-black text-brand-green">10</p><p className="mt-1 text-xs text-muted">invite codes / calendar month</p></div><div className="rounded-2xl border border-line bg-surface/70 p-4 text-center"><p className="text-lg font-black text-brand-green">৳0</p><p className="mt-1 text-xs text-muted">member subscription</p></div></div>
+        <div className="mt-6 rounded-2xl border border-line bg-surface/70 px-4 py-3 text-center text-xs text-muted">
+          {bn ? 'ম্যানেজার পেমেন্ট: bKash / Nagad / Rocket • মেম্বার: ফ্রি' : 'Manager payment: bKash / Nagad / Rocket • Members: free'}
+        </div>
 
-        <UniversityTrustBanner />
-
-        <p className="mt-8 text-center text-xs text-muted">Already have a MealHisab account? <Link href="/login" className="font-semibold text-brand-green hover:underline">Log in</Link></p>
+        <p className="mt-8 text-center text-sm text-muted">{bn ? 'আগেই MealHisab অ্যাকাউন্ট আছে?' : 'Already have a MealHisab account?'} <Link href="/login" className="font-semibold text-brand-green hover:underline">{bn ? 'লগ ইন' : 'Log in'}</Link></p>
       </div>
     </main>
   )
