@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { CalendarDays, ChevronRight, CircleDollarSign, FileBarChart, HandCoins, History, LayoutDashboard, Menu, Settings, Utensils, WalletCards, X, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
+import { BrandLogoMark } from '@/components/brand-logo-mark'
 import { LanguageProvider, LanguageToggle, useI18n } from '@/components/language-provider'
 import type { DictKey } from '@/lib/i18n'
 
@@ -54,7 +55,7 @@ function DesktopNav() {
     <aside className="hidden w-[248px] shrink-0 border-r border-line/80 bg-surface/72 backdrop-blur-xl lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
       <div className="px-5 pb-5 pt-5">
         <Link href="/dashboard" className="flex items-center gap-3 rounded-2xl px-1 py-2">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-brand-green-2 to-brand-green text-white shadow-sm"><Utensils size={18}/></span>
+          <BrandLogoMark size={40} />
           <div><p className="text-[15px] font-black tracking-[-0.025em] text-main">MealHisab</p><p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.17em] text-muted">Bangladesh</p></div>
         </Link>
       </div>
