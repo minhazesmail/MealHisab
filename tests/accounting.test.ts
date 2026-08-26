@@ -34,7 +34,10 @@ describe('MealHisab accounting', () => {
 
   it('calculates member cost and carry-forward balance', () => {
     const result = calculateSettlements(
-      [{ userId: 'u1', mealCount: 80, contribution: 5000, openingBalance: 500 }],
+      [
+        { userId: 'u1', mealCount: 80, contribution: 5000, openingBalance: 500 },
+        { userId: 'u2', mealCount: 920, contribution: 0, openingBalance: 0 },
+      ],
       20000,
       1000,
     )[0]
