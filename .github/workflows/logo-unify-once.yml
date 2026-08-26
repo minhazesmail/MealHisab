@@ -1,0 +1,100 @@
+name: One-time logo unification
+
+on:
+  push:
+    branches: [branding/finish-logo-unification]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: branding/finish-logo-unification
+      - name: Replace remaining legacy logo surfaces
+        shell: python
+        run: |
+          import re
+          from pathlib import Path
+
+          def read(path):
+              return Path(path).read_text()
+
+          def write(path, text):
+              Path(path).write_text(text)
+
+          # OTP/signup screen: remove the old hand-built SVG and use the canonical component.
+          path = 'src/app/login/page.tsx'
+          text = read(path)
+          text = text.replace(
+              "import { LanguageToggle, useI18n } from '@/components/language-provider'",
+              "import { BrandLogoMark } from '@/components/brand-logo-mark'\nimport { LanguageToggle, useI18n } from '@/components/language-provider'",
+          )
+          text, count = re.subn(
+              r"\nfunction LogoMark\(\) \{.*?\n\}\n\nfunction LoginForm",
+              "\nfunction LoginForm",
+              text,
+              flags=re.S,
+          )
+          assert count == 1, f'login LogoMark removal count={count}'
+          assert '<LogoMark/>' in text
+          text = text.replace('<LogoMark/>', '<BrandLogoMark size={42}/>')
+          write(path, text)
+
+          # Demo header: remove its separate SVG copy and use the same canonical component.
+          path = 'src/app/demo/page.tsx'
+          text = read(path)
+          text = text.replace(
+              "import { LanguageToggle, useI18n } from '@/components/language-provider'",
+              "import { BrandLogoMark } from '@/components/brand-logo-mark'\nimport { LanguageToggle, useI18n } from '@/components/language-provider'",
+          )
+          text, count = re.subn(
+              r"\nfunction BrandMark\(\) \{.*?\n\}\n\nexport default function DemoPage",
+              "\nexport default function DemoPage",
+              text,
+              flags=re.S,
+          )
+          assert count == 1, f'demo BrandMark removal count={count}'
+          assert '<BrandMark />' in text
+          text = text.replace('<BrandMark />', '<BrandLogoMark size={34} />')
+          write(path, text)
+
+          # Authenticated app header: replace the Sparkles placeholder with the real mark.
+          path = 'src/app/(app)/layout.tsx'
+          text = read(path)
+          assert "import { Sparkles } from 'lucide-react'" in text
+          text = text.replace(
+              "import { Sparkles } from 'lucide-react'",
+              "import { BrandLogoMark } from '@/components/brand-logo-mark'",
+          )
+          old_class = 'className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-surface shadow-sm transition hover:-translate-y-0.5 hover:border-line-strong"'
+          assert old_class in text
+          text = text.replace(old_class, 'className="group shrink-0 rounded-xl transition hover:-translate-y-0.5"')
+          assert '<Sparkles size={17} className="text-brand-green" />' in text
+          text = text.replace('<Sparkles size={17} className="text-brand-green" />', '<BrandLogoMark size={40} />')
+          write(path, text)
+
+          # Browser tab/PWA icon: same rounded emerald mark with the same Utensils glyph.
+          icon = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+          <defs><linearGradient id="brand" x1="30" y1="24" x2="226" y2="232" gradientUnits="userSpaceOnUse"><stop stop-color="#19D96B"/><stop offset="1" stop-color="#10B981"/></linearGradient></defs>
+          <rect x="8" y="8" width="240" height="240" rx="72" fill="url(#brand)"/>
+          <g transform="translate(56 56) scale(6)" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
+            <path d="M7 2v20"/>
+            <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
+          </g>
+          </svg>'''.replace('\n          ', '\n').strip() + '\n'
+          write('src/app/icon.svg', icon)
+          write('public/mealhisab-logo.svg', icon)
+
+      - name: Commit unified logo surfaces
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/login/page.tsx src/app/demo/page.tsx 'src/app/(app)/layout.tsx' src/app/icon.svg public/mealhisab-logo.svg
+          git commit -m "finish logo unification across all surfaces"
+          git push origin HEAD:branding/finish-logo-unification
