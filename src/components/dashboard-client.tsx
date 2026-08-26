@@ -7,6 +7,17 @@ import { InviteSharePanel } from '@/components/invite-share'
 
 export type DashboardRow = { id: string; name: string; meals: number; mealCost: number; contribution: number; balance: number }
 
+function formatDate(value: string, locale: 'en' | 'bn') {
+  const date = new Date(`${value.slice(0, 10)}T00:00:00Z`)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat(locale === 'bn' ? 'bn-BD' : 'en-BD', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date)
+}
+
 export function DashboardClient({ flatName, inviteCode, mealPolicy, cycleStart, cycleEnd, totalMeals, foodCost, rate, totalShared, rows }: {
   flatName: string; inviteCode: string; mealPolicy: string; cycleStart: string; cycleEnd: string; totalMeals: number; foodCost: number; rate: number; totalShared: number; rows: DashboardRow[]
 }) {
@@ -58,7 +69,7 @@ export function DashboardClient({ flatName, inviteCode, mealPolicy, cycleStart, 
       <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-brand-green/10 blur-3xl" />
       <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-muted"><span className="rounded-full border border-brand-green/20 bg-brand-green/10 px-2.5 py-1 text-brand-green">{copy.openCycle}</span><span className="inline-flex items-center gap-1.5"><CalendarDays size={14}/>{cycleStart} → {cycleEnd}</span></div>
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-muted"><span className="rounded-full border border-brand-green/20 bg-brand-green/10 px-2.5 py-1 text-brand-green">{copy.openCycle}</span><span className="inline-flex items-center gap-1.5"><CalendarDays size={14}/>{formatDate(cycleStart, locale)} → {formatDate(cycleEnd, locale)}</span></div>
           <h1 className="mt-3 text-3xl font-black tracking-tight text-main sm:text-4xl">{flatName}</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">{copy.hero}</p>
         </div>
