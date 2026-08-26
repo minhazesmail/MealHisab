@@ -9,15 +9,23 @@ export function NotificationBell() {
   const [items, setItems] = useState<Notice[]>([])
   const [open, setOpen] = useState(false)
 
-  async function load() {
-    const res = await fetch('/api/notifications', { cache: 'no-store' })
-    if (res.ok) setItems(await res.json())
-  }
-
   useEffect(() => {
-    void load()
-    const timer = window.setInterval(() => void load(), 60_000)
-    return () => window.clearInterval(timer)
+    let cancelled = false
+
+    const refresh = () => {
+      void fetch('/api/notifications', { cache: 'no-store' })
+        .then(async (res) => (res.ok ? await res.json() as Notice[] : null))
+        .then((next) => {
+          if (!cancelled && next) setItems(next)
+        })
+    }
+
+    refresh()
+    const timer = window.setInterval(refresh, 60_000)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
   }, [])
 
   const unread = items.filter((x) => !x.read_at).length
