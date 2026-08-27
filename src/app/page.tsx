@@ -15,6 +15,28 @@ export default function Home() {
   return (
     <>
       <LandingPage />
+      <style>{`
+        footer > p:first-child {
+          display: inline-flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 0.45rem;
+        }
+        footer > p:first-child::after {
+          content: 'By Hemilin Studio';
+          display: inline-flex;
+          align-items: center;
+          min-height: 1.75rem;
+          padding-left: 2rem;
+          background-image: url('/hemilin-studio.png');
+          background-repeat: no-repeat;
+          background-position: left center;
+          background-size: 1.75rem 1.75rem;
+          font-weight: 600;
+          color: rgb(var(--text-main));
+          white-space: nowrap;
+        }
+      `}</style>
       <div className="bg-canvas px-5 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <UniversityTrustBanner />
