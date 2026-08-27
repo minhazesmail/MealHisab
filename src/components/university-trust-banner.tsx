@@ -2,22 +2,22 @@ const universities = [
   {
     name: 'North South University',
     shortName: 'NSU',
-    logo: 'https://images.seeklogo.com/logo-png/35/1/north-south-university-logo-png_seeklogo-351576.png',
+    logo: 'https://image.pngaaa.com/679/7881679-middle.png',
   },
   {
     name: 'BRAC University',
     shortName: 'BRACU',
-    logo: 'https://media.cake.me/image/upload/s--KZpDzHQ6--/c_pad%2Cfl_png8%2Ch_400%2Cw_400/v1629663505/m9hdnmff36eopbecckc4.png',
+    logo: 'https://www.bracu.ac.bd/sites/default/files/resources/media/bracu_logo.png',
   },
   {
     name: 'American International University-Bangladesh',
     shortName: 'AIUB',
-    logo: 'https://cdn.brandfetch.io/id0kyLNEJ6/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1764821918941',
+    logo: 'https://vectorseek.com/wp-content/uploads/2023/08/Aiub-Logo-Vector.svg-.png',
   },
   {
     name: 'Independent University, Bangladesh',
     shortName: 'IUB',
-    logo: 'https://collegevorti.com/images/institutes_logo/institutes_logo_1713268659137_661e67b32183a.webp',
+    logo: 'https://iub.ac.bd/_next/image?q=75&url=https%3A%2F%2Fiub.ac.bd%2Fmedia-backend%2Fmedia%2Fiub-logo_1_png_color-9303cd91-58be-47a4-97f7-0f1231a850be.png&w=3840',
   },
   {
     name: 'United International University',
@@ -27,12 +27,12 @@ const universities = [
   {
     name: 'Daffodil International University',
     shortName: 'DIU',
-    logo: 'https://academicjobs.s3.amazonaws.com/img/university-logo/Daffodil%20International%20University%20Jobs.jpg',
+    logo: 'https://icon2.cleanpng.com/20180505/bvw/avstwg208.webp',
   },
   {
     name: 'University of Dhaka',
     shortName: 'DU',
-    logo: 'https://www.logotypes101.com/logos/848/12FDF5CDF41902EC9DE0012D2A6F4ECB/du1.png',
+    logo: 'https://w7.pngwing.com/pngs/520/105/png-transparent-dhaka-university-library-institute-of-information-technology-university-of-dhaka-institute-of-business-administration-university-of-dhaka-curzon-hall-alumni-association-emblem-people-logo.png',
   },
   {
     name: 'University of Chittagong',
@@ -64,12 +64,13 @@ export default function UniversityTrustBanner() {
         <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
           {universities.map((university) => (
             <div key={university.shortName} className="group flex min-h-28 flex-col items-center justify-center bg-transparent px-2 py-2 text-center transition hover:-translate-y-0.5">
-              <div
-                role="img"
-                aria-label={university.name}
+              <img
+                src={university.logo}
+                alt={university.name}
                 title={university.name}
-                className="h-16 w-full bg-contain bg-center bg-no-repeat opacity-80 grayscale mix-blend-multiply transition group-hover:opacity-100 group-hover:grayscale-0 dark:mix-blend-normal"
-                style={{ backgroundImage: `url("${university.logo}")`, backgroundColor: 'transparent' }}
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                className="h-16 w-full object-contain opacity-80 grayscale transition group-hover:opacity-100 group-hover:grayscale-0"
               />
               <p className="mt-3 text-[11px] font-semibold leading-4 text-muted transition group-hover:text-main">
                 {university.name}
