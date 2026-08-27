@@ -44,6 +44,11 @@ const universities = [
     shortName: 'GUB',
     logo: 'https://images.seeklogo.com/logo-png/65/1/green-university-of-bangladesh-logo-png_seeklogo-653144.png',
   },
+  {
+    name: 'East West University',
+    shortName: 'EWU',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/East-west-university-LogoSVG.svg/2560px-East-west-university-LogoSVG.svg.png',
+  },
 ] as const
 
 export default function UniversityTrustBanner() {
@@ -58,13 +63,13 @@ export default function UniversityTrustBanner() {
 
         <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {universities.map((university) => (
-            <div key={university.shortName} className="group flex min-h-24 items-center justify-center rounded-2xl border border-line bg-surface px-4 py-4 shadow-soft transition hover:-translate-y-0.5 hover:border-line-strong hover:bg-surface-2">
+            <div key={university.shortName} className="group flex min-h-24 items-center justify-center rounded-2xl border border-line bg-transparent px-4 py-4 shadow-soft transition hover:-translate-y-0.5 hover:border-line-strong">
               <div
                 role="img"
                 aria-label={university.name}
                 title={university.name}
                 className="h-16 w-full bg-contain bg-center bg-no-repeat opacity-75 grayscale transition group-hover:opacity-100 group-hover:grayscale-0"
-                style={{ backgroundImage: `url("${university.logo}")` }}
+                style={{ backgroundImage: `url("${university.logo}")`, backgroundColor: 'transparent' }}
               />
             </div>
           ))}
