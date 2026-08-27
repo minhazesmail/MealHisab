@@ -4,11 +4,5 @@
     "deploymentEnabled": {
       "main": true
     }
-  },
-  "crons": [
-    {
-      "path": "/api/cron/meal-reminders",
-      "schedule": "*/15 * * * *"
-    }
-  ]
+  }
 }
