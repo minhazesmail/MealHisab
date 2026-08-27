@@ -4,5 +4,6 @@
     "deploymentEnabled": {
       "main": true
     }
-  }
+  },
+  "buildCommand": "pwd && find src/app -maxdepth 2 -type f | sort | head -80 && npm run build"
 }
