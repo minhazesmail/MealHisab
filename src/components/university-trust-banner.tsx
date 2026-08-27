@@ -32,12 +32,12 @@ const universities = [
   {
     name: 'University of Dhaka',
     shortName: 'DU',
-    logo: '/universities/du.png',
+    logo: '/universities/du.svg?v=2',
   },
   {
     name: 'University of Chittagong',
     shortName: 'CU',
-    logo: '/universities/cu.png',
+    logo: '/universities/cu.svg?v=2',
   },
   {
     name: 'Green University of Bangladesh',
