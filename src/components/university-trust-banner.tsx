@@ -69,7 +69,7 @@ export default function UniversityTrustBanner() {
                 alt={university.name}
                 title={university.name}
                 loading="lazy"
-                className="h-16 w-full object-contain opacity-80 grayscale transition group-hover:opacity-100 group-hover:grayscale-0"
+                className={`h-16 w-full object-contain opacity-90 transition group-hover:opacity-100 ${university.shortName === 'CU' ? 'invert dark:invert-0' : ''}`}
               />
               <p className="mt-3 text-[11px] font-semibold leading-4 text-muted transition group-hover:text-main">
                 {university.name}
