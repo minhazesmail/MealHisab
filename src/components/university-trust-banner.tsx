@@ -47,7 +47,7 @@ const universities = [
   {
     name: 'East West University',
     shortName: 'EWU',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/East-west-university-LogoSVG.svg/2560px-East-west-university-LogoSVG.svg.png',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/1/16/East-west-university-LogoSVG.svg',
   },
 ] as const
 
@@ -61,16 +61,19 @@ export default function UniversityTrustBanner() {
           <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-muted">From private universities to Bangladesh’s public university community, MealHisab helps students keep shared meals and expenses fair.</p>
         </div>
 
-        <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
           {universities.map((university) => (
-            <div key={university.shortName} className="group flex min-h-24 items-center justify-center rounded-2xl border border-line bg-transparent px-4 py-4 shadow-soft transition hover:-translate-y-0.5 hover:border-line-strong">
+            <div key={university.shortName} className="group flex min-h-28 flex-col items-center justify-center bg-transparent px-2 py-2 text-center transition hover:-translate-y-0.5">
               <div
                 role="img"
                 aria-label={university.name}
                 title={university.name}
-                className="h-16 w-full bg-contain bg-center bg-no-repeat opacity-75 grayscale transition group-hover:opacity-100 group-hover:grayscale-0"
+                className="h-16 w-full bg-contain bg-center bg-no-repeat opacity-80 grayscale mix-blend-multiply transition group-hover:opacity-100 group-hover:grayscale-0 dark:mix-blend-normal"
                 style={{ backgroundImage: `url("${university.logo}")`, backgroundColor: 'transparent' }}
               />
+              <p className="mt-3 text-[11px] font-semibold leading-4 text-muted transition group-hover:text-main">
+                {university.name}
+              </p>
             </div>
           ))}
         </div>
