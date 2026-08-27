@@ -7,8 +7,8 @@
     "unrs-resolver@1.12.2": true
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/restore-university-logos.mjs && next dev",
+    "build": "node scripts/restore-university-logos.mjs && next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
