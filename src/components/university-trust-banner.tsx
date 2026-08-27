@@ -32,12 +32,12 @@ const universities = [
   {
     name: 'University of Dhaka',
     shortName: 'DU',
-    logo: '/universities/du.svg?v=2',
+    logo: '/universities/du.svg?v=3',
   },
   {
     name: 'University of Chittagong',
     shortName: 'CU',
-    logo: '/universities/cu.svg?v=2',
+    logo: '/universities/cu-exact-v5.png',
   },
   {
     name: 'Green University of Bangladesh',
@@ -69,7 +69,7 @@ export default function UniversityTrustBanner() {
                 alt={university.name}
                 title={university.name}
                 loading="lazy"
-                className={`h-16 w-full object-contain opacity-90 transition group-hover:opacity-100 ${university.shortName === 'CU' ? 'invert dark:invert-0' : ''}`}
+                className="h-16 w-auto max-w-full object-contain opacity-100"
               />
               <p className="mt-3 text-[11px] font-semibold leading-4 text-muted transition group-hover:text-main">
                 {university.name}
