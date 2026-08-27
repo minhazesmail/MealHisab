@@ -32,18 +32,12 @@ const universities = [
   {
     name: 'University of Dhaka',
     shortName: 'DU',
-    logo: '/universities/du.svg?v=4',
-    nativeWidth: 238.425,
-    nativeHeight: 300,
-    displayScale: 64 / 300,
+    logo: '/universities/du.svg?v=5',
   },
   {
     name: 'University of Chittagong',
     shortName: 'CU',
-    logo: '/universities/cu.svg?v=4',
-    nativeWidth: 176.60001,
-    nativeHeight: 250,
-    displayScale: 64 / 250,
+    logo: '/universities/cu.svg?v=5',
   },
   {
     name: 'Green University of Bangladesh',
@@ -68,42 +62,20 @@ export default function UniversityTrustBanner() {
         </div>
 
         <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
-          {universities.map((university) => {
-            const hasNativeSizing = 'nativeWidth' in university
-
-            return (
-              <div key={university.shortName} className="group flex min-h-28 flex-col items-center justify-center bg-transparent px-2 py-2 text-center transition hover:-translate-y-0.5">
-                {hasNativeSizing ? (
-                  <div className="relative h-16 w-full overflow-visible">
-                    <img
-                      src={university.logo}
-                      alt={university.name}
-                      title={university.name}
-                      loading="eager"
-                      className="absolute left-1/2 top-1/2 max-w-none opacity-100"
-                      style={{
-                        width: `${university.nativeWidth}px`,
-                        height: `${university.nativeHeight}px`,
-                        transform: `translate(-50%, -50%) scale(${university.displayScale})`,
-                        transformOrigin: 'center',
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <img
-                    src={university.logo}
-                    alt={university.name}
-                    title={university.name}
-                    loading="lazy"
-                    className="h-16 w-auto max-w-full object-contain opacity-100"
-                  />
-                )}
-                <p className="mt-3 text-[11px] font-semibold leading-4 text-muted transition group-hover:text-main">
-                  {university.name}
-                </p>
-              </div>
-            )
-          })}
+          {universities.map((university) => (
+            <div key={university.shortName} className="group flex min-h-28 flex-col items-center justify-center bg-transparent px-2 py-2 text-center transition hover:-translate-y-0.5">
+              <img
+                src={university.logo}
+                alt={university.name}
+                title={university.name}
+                loading="lazy"
+                className="h-16 w-auto max-w-full object-contain opacity-100"
+              />
+              <p className="mt-3 text-[11px] font-semibold leading-4 text-muted transition group-hover:text-main">
+                {university.name}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
