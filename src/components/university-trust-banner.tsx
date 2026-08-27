@@ -80,7 +80,7 @@ export default function UniversityTrustBanner() {
                 title={university.name}
                 loading="lazy"
                 referrerPolicy="no-referrer"
-                className={`h-16 w-full object-contain opacity-80 grayscale transition group-hover:opacity-100 group-hover:grayscale-0 ${university.knockOutWhite ? 'mix-blend-multiply dark:mix-blend-normal' : ''}`}
+                className={`h-16 w-full object-contain opacity-80 grayscale transition group-hover:opacity-100 ${university.knockOutWhite ? 'mix-blend-multiply contrast-200 dark:invert dark:mix-blend-screen dark:contrast-200' : 'group-hover:grayscale-0'}`}
               />
               <p className="mt-3 text-[11px] font-semibold leading-4 text-muted transition group-hover:text-main">
                 {university.name}
