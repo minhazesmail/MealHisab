@@ -28,7 +28,7 @@ export default function Home() {
           align-items: center;
           min-height: 1.75rem;
           padding-left: 2rem;
-          background-image: url('/hemilin-studio.png');
+          background-image: url('/hemilin-studio.png?v=20260828-2');
           background-repeat: no-repeat;
           background-position: left center;
           background-size: 1.75rem 1.75rem;
