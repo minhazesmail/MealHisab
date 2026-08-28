@@ -45,7 +45,7 @@ jobs:
         run: supabase db reset
       - name: Run database integration tests
         run: supabase test db
-      - name: Run public and auth end-to-end tests
+      - name: Run Playwright end-to-end and accessibility tests
         run: npm run test:e2e
       - name: Stop local Supabase
         if: always()
