@@ -24,27 +24,29 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
       - run: npm run typecheck
-      - name: Build production app
-        run: npm run build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-publishable-key
-          NEXT_PUBLIC_APP_URL: http://localhost:3000
       - uses: supabase/setup-cli@v1
         with:
           version: latest
       - name: Start local Supabase
         run: supabase start
+      - name: Export local Supabase credentials
+        run: |
+          supabase status -o env > /tmp/supabase-env
+          api_url=$(sed -n 's/^API_URL="\(.*\)"/\1/p' /tmp/supabase-env)
+          anon_key=$(sed -n 's/^ANON_KEY="\(.*\)"/\1/p' /tmp/supabase-env)
+          test -n "$api_url"
+          test -n "$anon_key"
+          echo "NEXT_PUBLIC_SUPABASE_URL=$api_url" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$anon_key" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000" >> "$GITHUB_ENV"
+      - name: Build production app
+        run: npm run build
       - name: Rebuild database from migrations
         run: supabase db reset
       - name: Run database integration tests
         run: supabase test db
       - name: Run public and auth end-to-end tests
         run: npm run test:e2e
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-publishable-key
-          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
       - name: Stop local Supabase
         if: always()
         run: supabase stop --no-backup || true
