@@ -3,7 +3,7 @@ import './globals.css'
 import { Toaster } from 'sonner'
 import { LanguageProvider } from '@/components/language-provider'
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://meal-hisab-sigma.vercel.app'
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://meal-hisab-sigma.vercel.app'
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
@@ -12,8 +12,9 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
   openGraph: {
     type: 'website',
-    siteName: 'MealHisab BD',
     locale: 'en_BD',
+    url: '/',
+    siteName: 'MealHisab BD',
     title: 'MealHisab BD',
     description: 'Simple, fair meal accounting for Bangladeshi flats and messes.',
   },
@@ -24,23 +25,10 @@ export const metadata: Metadata = {
   },
 }
 
-const themeScript = `(() => {
-  try {
-    const saved = localStorage.getItem('mealhisab-theme');
-    const theme = saved === 'light' || saved === 'dark'
-      ? saved
-      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    const root = document.documentElement;
-    root.dataset.theme = theme;
-    root.classList.toggle('dark', theme === 'dark');
-    root.style.colorScheme = theme;
-  } catch {}
-})();`
-
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
+      <head><script src="/theme-init.js" /></head>
       <body>
         <LanguageProvider>
           {children}
