@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useSyncExternalStore,
   type ReactNode,
@@ -55,13 +54,10 @@ function subscribeLocale(onStoreChange: () => void) {
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const locale = useSyncExternalStore(subscribeLocale, readStoredLocale, () => defaultLocale)
 
-  useEffect(() => {
-    document.documentElement.lang = locale === 'bn' ? 'bn' : 'en'
-  }, [locale])
-
   const setLocale = useCallback((next: Locale) => {
     try {
       window.localStorage.setItem(STORAGE_KEY, next)
+      document.documentElement.lang = next
       window.dispatchEvent(new Event(LOCALE_EVENT))
     } catch {
       /* ignore */
