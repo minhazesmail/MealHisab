@@ -21,6 +21,8 @@ jobs:
             exit 1
           fi
       - run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
       - run: npm run typecheck
       - name: Build production app
         run: npm run build
@@ -37,6 +39,12 @@ jobs:
         run: supabase db reset
       - name: Run database integration tests
         run: supabase test db
+      - name: Run public and auth end-to-end tests
+        run: npm run test:e2e
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-publishable-key
+          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
       - name: Stop local Supabase
         if: always()
         run: supabase stop --no-backup || true
