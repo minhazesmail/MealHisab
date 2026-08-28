@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import { Toaster } from 'sonner'
 import { LanguageProvider } from '@/components/language-provider'
@@ -28,8 +29,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head><script src="/theme-init.js" /></head>
       <body>
+        <Script src="/theme-init.js" strategy="beforeInteractive" />
         <LanguageProvider>
           {children}
           <Toaster position="top-right" richColors closeButton theme="system" />
