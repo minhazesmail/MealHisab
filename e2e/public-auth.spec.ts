@@ -23,16 +23,16 @@ test.describe('public and auth entry flows', () => {
   test('login page presents the OTP sign-in form', async ({ page }) => {
     await page.goto('/login')
 
-    await expect(page.getByRole('heading', { name: /log in or create your account/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /email/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /phone/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /verify your account/i })).toBeVisible()
+    await expect(page.getByRole('tab', { name: /^email$/i })).toBeVisible()
+    await expect(page.getByRole('tab', { name: /^phone/i })).toBeVisible()
   })
 
   test('unauthenticated app access is redirected to login', async ({ page }) => {
     await page.goto('/dashboard')
 
     await expect(page).toHaveURL(/\/login(?:\?.*)?$/)
-    await expect(page.getByRole('heading', { name: /log in or create your account/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /verify your account/i })).toBeVisible()
   })
 
   test('language toggle updates the document language', async ({ page }) => {
