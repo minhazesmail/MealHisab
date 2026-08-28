@@ -2,10 +2,26 @@ import type { Metadata } from 'next'
 import LandingPage from '@/components/landing-page'
 import UniversityTrustBanner from '@/components/university-trust-banner'
 
+const title = 'MealHisab BD — Simple meal accounting for shared flats'
+const description =
+  'Track meals, expenses, contributions and monthly settlements for Bangladeshi messes, shared flats and small households.'
+
 export const metadata: Metadata = {
-  title: 'MealHisab BD — Simple meal accounting for shared flats',
-  description:
-    'Track meals, expenses, contributions and monthly settlements for Bangladeshi messes, shared flats and small households.',
+  title,
+  description,
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title,
+    description,
+    url: '/',
+  },
+  twitter: {
+    card: 'summary',
+    title,
+    description,
+  },
 }
 
 export default function Home() {
