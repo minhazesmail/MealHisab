@@ -1,10 +1,28 @@
 import type { Metadata } from 'next'
-import Script from 'next/script'
 import './globals.css'
 import { Toaster } from 'sonner'
 import { LanguageProvider } from '@/components/language-provider'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://meal-hisab-sigma.vercel.app'
+
+const themeInitScript = `(() => {
+  try {
+    const savedTheme = localStorage.getItem('mealhisab-theme')
+    const theme = savedTheme === 'light' || savedTheme === 'dark'
+      ? savedTheme
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    const root = document.documentElement
+    root.dataset.theme = theme
+    root.classList.toggle('dark', theme === 'dark')
+    root.style.colorScheme = theme
+
+    const savedLocale = localStorage.getItem('mealhisab-locale')
+    const locale = savedLocale === 'en' || savedLocale === 'bn'
+      ? savedLocale
+      : ((navigator.language || '').toLowerCase().startsWith('bn') ? 'bn' : 'en')
+    root.lang = locale
+  } catch {}
+})()`
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
@@ -29,8 +47,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>
-        <Script src="/theme-init.js" strategy="beforeInteractive" />
         <LanguageProvider>
           {children}
           <Toaster position="top-right" richColors closeButton theme="system" />
