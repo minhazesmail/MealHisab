@@ -5,14 +5,14 @@ test.describe('public and auth entry flows', () => {
     await page.goto('/')
 
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Shared-house accounting')
-    await expect(page.getByRole('link', { name: /start as manager/i })).toHaveAttribute('href', '/register/manager')
+    await expect(page.getByRole('link', { name: /start as manager/i }).first()).toHaveAttribute('href', '/register/manager')
     await expect(page.getByRole('link', { name: /join with flat code/i }).first()).toHaveAttribute('href', '/join')
     await expect(page.getByRole('link', { name: /open interactive demo/i })).toHaveAttribute('href', '/demo')
   })
 
   test('get started leads to the account type choice', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('link', { name: /get started/i }).click()
+    await page.locator('header').getByRole('link', { name: /get started/i }).click()
 
     await expect(page).toHaveURL(/\/account-type$/)
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Do you manage the mess')
