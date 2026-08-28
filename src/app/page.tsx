@@ -2,9 +2,6 @@ import type { Metadata } from 'next'
 import LandingPage from '@/components/landing-page'
 import UniversityTrustBanner from '@/components/university-trust-banner'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
 export const metadata: Metadata = {
   title: 'MealHisab BD — Simple meal accounting for shared flats',
   description:
