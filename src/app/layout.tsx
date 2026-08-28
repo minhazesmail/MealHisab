@@ -3,10 +3,25 @@ import './globals.css'
 import { Toaster } from 'sonner'
 import { LanguageProvider } from '@/components/language-provider'
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://meal-hisab-sigma.vercel.app'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(appUrl),
   title: { default: 'MealHisab BD', template: '%s | MealHisab BD' },
   description: 'Simple, fair meal accounting for Bangladeshi flats and messes.',
   manifest: '/manifest.webmanifest',
+  openGraph: {
+    type: 'website',
+    siteName: 'MealHisab BD',
+    locale: 'en_BD',
+    title: 'MealHisab BD',
+    description: 'Simple, fair meal accounting for Bangladeshi flats and messes.',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'MealHisab BD',
+    description: 'Simple, fair meal accounting for Bangladeshi flats and messes.',
+  },
 }
 
 const themeScript = `(() => {
